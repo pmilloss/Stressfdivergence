@@ -9,40 +9,56 @@
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
 #' range of \code{f(x)}.
 #'
-#' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters 'inv.div' (inverse of the divergence function) and 'd.div' (the derivative of the divergence function) must be passed
+#' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used)
+#'
+#' @param inv.div A function specifying the inverse of the divergence function, when a user divergence function is used.
+#'
+#' @param d.div A function specifying the derivative of the divergence function, when a user divergence function is used.
+#'
+#' @param d.inv An optional function specifying the derivative of the inverse of the divergence function, when a user divergence function is used.
+#'
+#' @param p a set of optional weights specifying the baseline model.
 #'
 #' @param normalise Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval.
 #'
 #' @param show Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.
 #'
+#' @param start A numeric vector with two elements, the starting values for the+++++++
+#'
+#' @param sumRN Logical. If true, the++++++++++
+#'
 #' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
+#'
+#' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergnce.
 #'
 #' @return A named list
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, trace = FALSE,...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, start = NULL, suMRN = FALSE, ...){
 
   if (is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
-  if (!is.numeric(k)) stop("k must be an integer")
+  if (!is.numeric(k)) stop("k must be a numeric vector")
   if (!is.numeric(m)) stop("m must be numeric")
 
-  z <- f(x[, k])
+  if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
+
+  z <- f(x_data[, k])
   min.fz <- min(z)
   max.fz <- max(z)
   if (m < min.fz || m > max.fz) stop("Values in m must be in the range of f(x)")
 
-  if (normalise == TRUE){
+  if (normalise == TRUE) {
     z <- apply(z, 2, .scale)
     m <- (m - min.fz) / (max.fz - min.fz)
-  }
+    }
 
   if (div == "user" & (is.null(inv.div) | is.null(d.inv))) stop("For a user defined divergence, the arguments 'inv.div' and 'd.div' must be provided")
 
   if (div == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
-  if (div == "Chi2") {
+  if (div == "Chi2" | (div == "Alpha" & alpha == 2)) {
     inv.div <- function(x)0.5 * x
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
@@ -81,11 +97,10 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     return(c(F1, F2))
   }
 
-  starting <- c(L1 = d.div(1), L2 = 0)
+  if (is.null(start)) start <- c(L1 = d.div(1), L2 = 0)
 
-  if (!is.null(d.inv)){
-
-    J <- function(L){
+  if (!is.null(d.inv)) {
+    J <- function(L) {
       RN.der <- d.inv(L[1] + L[2] * x)
       ind <- (L[1] + L[2] * x > d.div0)
       J11 <- sum(p * RN.der * ind)
@@ -94,19 +109,76 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
       mat <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
       return(mat)
     }
-
-    res <- nleqslv(x = starting, fn = constraints, jac = J, ...)
+    sol <- nleqslv::nleqslv(x = start, fn = constraints, jac = J, ...)
   } else {
-    res <- nleqslv(x = starting, fn = constraints, ...)
+    sol <- nleqslv::nleqslv(x = start, fn = constraints, ...)
+    }
+
+  if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
+
+  constr_moment <- list("k" = k, "m" = m, "f" = f)
+  constr <- list(constr_moment)
+
+  # Name stresses
+  if (is.null(names)) {
+    temp <- paste("stress", 1)
+  } else {
+    temp <- names
   }
+
+  if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
+
+  new_weights = list()
+  new_weights[[temp]] <- inv.div(pmax(d.div0, sol$x[1] + sol$x[2] * z))
+  if(sumRN)
+
   # print(c(res$x[1], res$x[2]))
   # print(d.div0)
   #print(pmax(d.div0, res$x[1] + res$x[2] * x))
-  RN <- g(pmax(d.div0, res$x[1] + res$x[2] * x))
+  RN <-
   #print(RN)
   RN <- RN / mean(RN)
   if (trace)print(res)
   return(RN)
+
+  constr_moment <- list("k" = k, "m" = m, "f" = f)
+  constr <- list(constr_moment)
+
+  # Name stresses
+  if (is.null(names)) {
+    temp <- paste("stress", 1)
+  } else {
+    temp <- names
+  }
+  if (length(temp) != 1) stop("length of names are not the same as the number of models")
+  names(constr) <- temp
+
+  if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
+  new_weights = list()
+  new_weights[[temp]] <- as.vector(exp(z %*% sol$x))
+
+  type <- list("moment")
+  my_list <- SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
+  if (is.SWIM(x)) my_list <- merge(x, my_list)
+  if (show == TRUE) print(sol)
+  m.ac <- colMeans(z * as.vector(exp(z %*% sol$x)))[-1]
+  if (normalise == TRUE){
+    m <- min.fz + (max.fz - min.fz) * m
+    m.ac <- min.fz + (max.fz - min.fz) * m.ac
+  }
+  err <- m - m.ac
+  rel.err <- (err / m) * (m != 0)
+  outcome <- data.frame(cols = as.character(k), required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
+  print(outcome)
+
+  if (log) {
+    summary_weights(my_list)
+  }
+
+  return(my_list)
+}
+
+
 }
 
 set.seed(0)
