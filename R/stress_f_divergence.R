@@ -1,62 +1,93 @@
-require(nleqslv)
+#' stress_mean_div
+#'
+#' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
+#'
+#' @param f A function that, applied to \code{x}, constitute the moment constraints.
+#'
+#' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first columnn is selected and the identity function is applied.
+#'
+#' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
+#' range of \code{f(x)}.
+#'
+#' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters 'inv.div' (inverse of the divergence function) and 'd.div' (the derivative of the divergence function) must be passed
+#'
+#' @param normalise Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval.
+#'
+#' @param show Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.
+#'
+#' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
+#'
+#' @return A named list
+#' @export
 
-stress_mean_div <- function(x, new_mean, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), g = NULL, f.der = NULL, g.der = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, trace = FALSE,...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, trace = FALSE,...){
 
-  # f.der: first derivative of the divergence function
-  # g: inverse function of f.der
-  # g.der: first derivative of g (optional)
+  if (is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
+  if (anyNA(x_data)) warning("x contains NA")
+  if (!is.function(f)) stop("f must be a function")
+  if (!is.numeric(k)) stop("k must be an integer")
+  if (!is.numeric(m)) stop("m must be numeric")
 
-  if (div == "user" & (is.null(g) | is.null(f.der))) stop("For a user defined divergence, the arguments 'g' and 'f.der' must be provided")
+  z <- f(x[, k])
+  min.fz <- min(z)
+  max.fz <- max(z)
+  if (m < min.fz || m > max.fz) stop("Values in m must be in the range of f(x)")
 
-  if (div == "Alpha" & is.null(alpha)) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
+  if (normalise == TRUE){
+    z <- apply(z, 2, .scale)
+    m <- (m - min.fz) / (max.fz - min.fz)
+  }
+
+  if (div == "user" & (is.null(inv.div) | is.null(d.inv))) stop("For a user defined divergence, the arguments 'inv.div' and 'd.div' must be provided")
+
+  if (div == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
   if (div == "Chi2") {
-    g <- function(x)0.5 * x
-    f.der <- function(x)2 * x
-    f.der0 <- f.der(0)
-    g.der <- function(x)0.5
+    inv.div <- function(x)0.5 * x
+    d.div <- function(x)2 * x
+    d.div0 <- d.div(0)
+    d.inv <- function(x)0.5
   } else if (div == "KL") {
-    g <- function(x)exp(x - 1)
-    f.der <- function(x)1 + log(x)
-    f.der0 <- -Inf
-    g.der <- function(x)g(x)
+    inv.div <- function(x)exp(x - 1)
+    d.div <- function(x)1 + log(x)
+    d.div0 <- -Inf
+    d.inv <- function(x)inv.div(x)
   } else if (div == "Hellinger") {
-    g <- function(x)1 / (1 - x) ^ 2
-    f.der <- function(x)(1 - 1 / sqrt(x))
-    f.der0 <- -Inf
-    g.der <- function(x)2 / (1 - x) ^ 3
+    inv.div <- function(x)1 / (1 - x) ^ 2
+    d.div <- function(x)(1 - 1 / sqrt(x))
+    d.div0 <- -Inf
+    d.inv <- function(x)2 / (1 - x) ^ 3
   } else if (div == "Alpha") {
-    g <- function(x)(-2 * x * (1 + alpha)) ^ (-2 / (1 + alpha))
-    f.der <- function(x)(-0.5 * (x ^ (-0.5 * (1 + alpha))) / (1 + alpha))
-    f.der0 <- f.der(0)
-    g.der <- function(x)4 * (-2 * x * (1 + alpha)) ^ (- (3 + alpha) / (1 + alpha))
-    #print(f.der0)
+    inv.div <- function(x)(-2 * x * (1 + alpha)) ^ (-2 / (1 + alpha))
+    d.div <- function(x)(-0.5 * (x ^ (-0.5 * (1 + alpha))) / (1 + alpha))
+    d.div0 <- d.div(0)
+    d.inv <- function(x)4 * (-2 * x * (1 + alpha)) ^ (- (3 + alpha) / (1 + alpha))
   } else if (div == "Triangular") {
-    g <- function(x)-1 + 2 / sqrt(ifelse(x < 1, 1 - x, 0))
+    inv.div <- function(x)-1 + 2 / sqrt(ifelse(x < 1, 1 - x, 0))
       # ifelse(x < 1, -1 + 2 / sqrt(1 - x), Inf)
-    f.der <- function(x)(x - 1) * (x + 3) / (x + 1) ^ 2
-    f.der0 <- -3
-    # g.der <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
-    g.der <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
+    d.div <- function(x)(x - 1) * (x + 3) / (x + 1) ^ 2
+    d.div0 <- -3
+    # d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
+    d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
   } else if (div == "Jeffrey") {
   } else if (div == "user") {
-    f.der0 <- f.der(0)
+    d.div0 <- d.div(0)
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'Jeffrey' or 'user' ")
 
   constraints <- function(L){
-    RN <- g(pmax(f.der0, L[1] + L[2] * x))
+    RN <- g(pmax(d.div0, L[1] + L[2] * x))
     F1 <- sum(p * RN) - 1
     F2 <- sum(p * RN * x) - new_mean
     return(c(F1, F2))
   }
 
-  starting <- c(L1 = f.der(1), L2 = 0)
+  starting <- c(L1 = d.div(1), L2 = 0)
 
-  if (!is.null(g.der)){
+  if (!is.null(d.inv)){
 
     J <- function(L){
-      RN.der <- g.der(L[1] + L[2] * x)
-      ind <- (L[1] + L[2] * x > f.der0)
+      RN.der <- d.inv(L[1] + L[2] * x)
+      ind <- (L[1] + L[2] * x > d.div0)
       J11 <- sum(p * RN.der * ind)
       J12 <- sum(p * RN.der * x * ind)
       J22 <- sum(p * RN.der * x * x * ind)
@@ -69,9 +100,9 @@ stress_mean_div <- function(x, new_mean, div = c("Chi2", "KL", "Hellinger", "Alp
     res <- nleqslv(x = starting, fn = constraints, ...)
   }
   # print(c(res$x[1], res$x[2]))
-  # print(f.der0)
-  #print(pmax(f.der0, res$x[1] + res$x[2] * x))
-  RN <- g(pmax(f.der0, res$x[1] + res$x[2] * x))
+  # print(d.div0)
+  #print(pmax(d.div0, res$x[1] + res$x[2] * x))
+  RN <- g(pmax(d.div0, res$x[1] + res$x[2] * x))
   #print(RN)
   RN <- RN / mean(RN)
   if (trace)print(res)
