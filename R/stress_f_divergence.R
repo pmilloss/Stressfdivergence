@@ -34,7 +34,7 @@
 #' @return A named list
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, start = NULL, suMRN = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, start = NULL, sumRN = FALSE, ...){
 
   if (is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
@@ -47,10 +47,10 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   z <- f(x_data[, k])
   min.fz <- min(z)
   max.fz <- max(z)
-  if (m < min.fz || m > max.fz) stop("Values in m must be in the range of f(x)")
+  if (m < min.fz || m > max.fz) stop("m must be in the range of f(x)")
 
   if (normalise == TRUE) {
-    z <- apply(z, 2, .scale)
+    z <- (z - min.fz) / (max.fz - min.fz)
     m <- (m - min.fz) / (max.fz - min.fz)
     }
 
@@ -63,7 +63,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
     d.inv <- function(x)0.5
-  } else if (div == "KL") {
+  } else if (div == "KL" | (div == "Alpha" & alpha == 1)) {
     inv.div <- function(x)exp(x - 1)
     d.div <- function(x)1 + log(x)
     d.div0 <- -Inf
@@ -90,28 +90,28 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div0 <- d.div(0)
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'Jeffrey' or 'user' ")
 
-  constraints <- function(L){
-    RN <- g(pmax(d.div0, L[1] + L[2] * x))
-    F1 <- sum(p * RN) - 1
-    F2 <- sum(p * RN * x) - new_mean
-    return(c(F1, F2))
+  constr <- function(L){
+    RN <- inv.div(pmax(d.div0, L[1] + L[2] * x))
+    C1 <- sum(p * RN) - 1
+    C2 <- sum(p * RN * x) - m
+    return(c(C1, C2))
   }
 
   if (is.null(start)) start <- c(L1 = d.div(1), L2 = 0)
 
   if (!is.null(d.inv)) {
     J <- function(L) {
-      RN.der <- d.inv(L[1] + L[2] * x)
+      d.RN <- d.inv(L[1] + L[2] * x)
       ind <- (L[1] + L[2] * x > d.div0)
-      J11 <- sum(p * RN.der * ind)
-      J12 <- sum(p * RN.der * x * ind)
-      J22 <- sum(p * RN.der * x * x * ind)
-      mat <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
-      return(mat)
+      J11 <- sum(p * d.RN * ind)
+      J12 <- sum(p * d.RN * x * ind)
+      J22 <- sum(p * d.RN * x * x * ind)
+      jac <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
+      return(jac)
     }
-    sol <- nleqslv::nleqslv(x = start, fn = constraints, jac = J, ...)
+    sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
   } else {
-    sol <- nleqslv::nleqslv(x = start, fn = constraints, ...)
+    sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
     }
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
