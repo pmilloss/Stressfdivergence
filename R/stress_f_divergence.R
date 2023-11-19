@@ -125,39 +125,18 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   } else {
     temp <- names
   }
-
-  if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
-
-  new_weights = list()
-  new_weights[[temp]] <- inv.div(pmax(d.div0, sol$x[1] + sol$x[2] * z))
-  if(sumRN)
-
-  # print(c(res$x[1], res$x[2]))
-  # print(d.div0)
-  #print(pmax(d.div0, res$x[1] + res$x[2] * x))
-  RN <-
-  #print(RN)
-  RN <- RN / mean(RN)
-  if (trace)print(res)
-  return(RN)
-
-  constr_moment <- list("k" = k, "m" = m, "f" = f)
-  constr <- list(constr_moment)
-
-  # Name stresses
-  if (is.null(names)) {
-    temp <- paste("stress", 1)
-  } else {
-    temp <- names
-  }
   if (length(temp) != 1) stop("length of names are not the same as the number of models")
   names(constr) <- temp
 
-  if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
-  new_weights = list()
-  new_weights[[temp]] <- as.vector(exp(z %*% sol$x))
 
-  type <- list("moment")
+  if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
+
+  w <- inv.div(pmax(d.div0, sol$x[1] + sol$x[2] * z))
+  if(sumRN) w <- w / mean(w)
+  new_weights = list()
+  new_weights[[temp]] <- w
+
+  type <- list("moment") #++++++++++++++++++++
   my_list <- SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
   if (is.SWIM(x)) my_list <- merge(x, my_list)
   if (show == TRUE) print(sol)
@@ -176,8 +155,6 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   }
 
   return(my_list)
-}
-
 
 }
 
