@@ -24,6 +24,8 @@ stress_mean_div(
 )
 }
 \arguments{
+\item{x}{A data frame, matrix or vector +++++++++++++++++}
+
 \item{f}{A function that, applied to \code{x}, constitute the moment constraints.}
 
 \item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first columnn is selected and the identity function is applied.}
@@ -31,7 +33,7 @@ stress_mean_div(
 \item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the
 range of \code{f(x)}.}
 
-\item{div}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
+\item{div}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
 
 \item{inv.div}{A function specifying the inverse of the divergence function, when a user divergence function is used.}
 
@@ -40,6 +42,8 @@ range of \code{f(x)}.}
 \item{d.inv}{An optional function specifying the derivative of the inverse of the divergence function, when a user divergence function is chosen.}
 
 \item{p}{Numeric. A set of optional nonnegative scenario weights specifying the baseline model.}
+
+\item{alpha}{Numeric. The 'alpha' parameter when the Alpha divergence is used.}
 
 \item{normalise}{Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval.}
 
