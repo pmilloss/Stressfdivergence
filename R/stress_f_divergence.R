@@ -2,6 +2,8 @@
 #'
 #' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
 #'
+#' @param x A data frame, matrix or vector +++++++++++++++++
+#'
 #' @param f A function that, applied to \code{x}, constitute the moment constraints.
 #'
 #' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first columnn is selected and the identity function is applied.
@@ -9,7 +11,7 @@
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
 #' range of \code{f(x)}.
 #'
-#' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
+#' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #'
 #' @param inv.div A function specifying the inverse of the divergence function, when a user divergence function is used.
 #'
@@ -18,6 +20,8 @@
 #' @param d.inv An optional function specifying the derivative of the inverse of the divergence function, when a user divergence function is chosen.
 #'
 #' @param p Numeric. A set of optional nonnegative scenario weights specifying the baseline model.
+#'
+#' @param alpha Numeric. The 'alpha' parameter when the Alpha divergence is used.
 #'
 #' @param normalise Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval.
 #'
