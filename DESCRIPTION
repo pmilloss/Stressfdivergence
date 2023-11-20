@@ -13,3 +13,4 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/pmilloss/Stressfdivergence
 BugReports: https://github.com/pmilloss/Stressfdivergence/issues
+RoxygenNote: 7.2.3

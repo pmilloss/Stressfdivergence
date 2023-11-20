@@ -38,7 +38,7 @@
 
 stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, ...){
 
-  if (is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
+  if (SWIM::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
   if (!is.numeric(k)) stop("k must be a numeric vector")
@@ -139,8 +139,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   new_weights[[temp]] <- w
 
   type <- list("moment") #++++++++++++++++++++
-  my_list <- SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
-  if (is.SWIM(x)) my_list <- merge(x, my_list)
+  my_list <- SWIM::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
+  if (SWIM::is.SWIM(x)) my_list <- merge(x, my_list)
 
   if (show == TRUE) print(sol)
 
