@@ -159,7 +159,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   print(outcome)
 
   if (log) {
-    summary_weights(my_list)
+    SWIM::summary_weights(my_list)
   }
 
   return(my_list)
