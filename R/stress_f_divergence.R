@@ -42,7 +42,7 @@
 
 stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, ...){
 
-  if (SWIM::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
+  if (SWIM:::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
   if (!is.numeric(k)) stop("k must be a numeric vector")
@@ -64,7 +64,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
 
   if (div == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
-  if (div == "Chi2" | (div == "Alpha" & alpha == 2)) {
+  if (div == "Chi2" | (div == "Alpha" & !is.null(alpha) &  alpha == 2)) {
     inv.div <- function(x)0.5 * x
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
