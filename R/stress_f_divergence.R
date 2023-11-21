@@ -1,8 +1,7 @@
 #' stress_mean_div
 #'
 #' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
-#'
-#' @param x A data frame, matrix or vector +++++++++++++++++
+#' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #'
 #' @param f A function that, applied to \code{x}, constitute the moment constraints.
 #'
@@ -27,11 +26,13 @@
 #'
 #' @param show Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.
 #'
-#' @param names ++++++++++++
+#' @param names Character vector, the names of stressed models.
 #'
 #' @param start A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights
 #'
 #' @param sumRN Logical. If true, the scenario weights are normalized so as to average to 1.
+#'
+#' @param log Logical, the option to print weights' statistics.
 #'
 #' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
 #'
@@ -40,7 +41,7 @@
 #' @return A named list
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, ...){
 
   if (SWIM:::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")

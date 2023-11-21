@@ -1,16 +1,17 @@
 Package: Stressfdivergence
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Pietro Millossovich
-Maintainer: Pietro Millossovich
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-Depends: R (>= 4.3)
-Imports: stats, nleqslv, SWIM
-License: What license is it under?
-Encoding: UTF-8
-LazyData: true
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person("Pietro", "MIllossovich", , "pietro.millossovich@gmail.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
 URL: https://github.com/pmilloss/Stressfdivergence
 BugReports: https://github.com/pmilloss/Stressfdivergence/issues
+Imports: 
+    statsSWIMnleqslv
+Encoding: UTF-8
+Language: en
+LazyData: TRUE
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
