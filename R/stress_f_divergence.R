@@ -70,11 +70,13 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
     d.inv <- function(x)0.5
+    div <- "Chi2"
   } else if (div == "KL" | (div == "Alpha" & identical(alpha, 1))) {
     inv.div <- function(x)exp(x - 1)
     d.div <- function(x)1 + log(x)
     d.div0 <- -Inf
     d.inv <- function(x)inv.div(x)
+    div <- "KL"
   } else if (div == "Hellinger") {
     inv.div <- function(x)1 / (1 - x) ^ 2
     d.div <- function(x)(1 - 1 / sqrt(x))
@@ -85,6 +87,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div <- function(x)(-0.5 * (x ^ (-0.5 * (1 + alpha))) / (1 + alpha))
     d.div0 <- d.div(0)
     d.inv <- function(x)4 * (-2 * x * (1 + alpha)) ^ (- (3 + alpha) / (1 + alpha))
+    div <- paste("Alpha, a=", alpha)
   } else if (div == "Triangular") {
     inv.div <- function(x)-1 + 2 / sqrt(ifelse(x < 1, 1 - x, 0))
       # ifelse(x < 1, -1 + 2 / sqrt(1 - x), Inf)
@@ -124,6 +127,19 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 
+  w <- p * inv.div(pmax(d.div0, sol$x[1] + sol$x[2] * z)) # p here+++++++++++
+  if(sumRN) w <- w / mean(w)
+
+  m.ac <- sum(w * z)
+  if (normalise == TRUE){
+    m <- min.fz + (max.fz - min.fz) * m
+    m.ac <- min.fz + (max.fz - min.fz) * m.ac
+  }
+  err <- m - m.ac
+  rel.err <- (err / m) * (m != 0)
+  outcome <- c(required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
+  print(outcome)
+
   constr_moment <- list("k" = k, "m" = m, "f" = f, "div" = div)
   constr <- list(constr_moment)
 
@@ -138,8 +154,6 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
 
   if (is.null(colnames(x_data))) colnames(x_data) <-  paste("X", 1:ncol(x_data), sep = "")
 
-  w <- p * inv.div(pmax(d.div0, sol$x[1] + sol$x[2] * z)) # p here+++++++++++
-  if(sumRN) w <- w / mean(w)
   new_weights = list()
   new_weights[[temp]] <- w
 
@@ -148,16 +162,6 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   if (SWIM:::is.SWIM(x)) my_list <- merge(x, my_list)
 
   if (show == TRUE) print(sol)
-
-  m.ac <- sum(w * z)
-  if (normalise == TRUE){
-    m <- min.fz + (max.fz - min.fz) * m
-    m.ac <- min.fz + (max.fz - min.fz) * m.ac
-  }
-  err <- m - m.ac
-  rel.err <- (err / m) * (m != 0)
-  outcome <- c(required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
-  print(outcome)
 
   if (log) {
     SWIM::summary_weights(my_list)
