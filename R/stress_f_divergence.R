@@ -65,7 +65,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
 
   if (div == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
-  if (div == "Chi2" | (div == "Alpha" & !is.null(alpha) &  alpha == 2)) {
+  if (div == "Chi2" | (div == "Alpha" & identical(alpha, 2))) {
     inv.div <- function(x)0.5 * x
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
