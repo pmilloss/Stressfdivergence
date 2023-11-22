@@ -20,11 +20,12 @@ stress_mean_div(
   names = NULL,
   start = NULL,
   sumRN = FALSE,
+  log = FALSE,
   ...
 )
 }
 \arguments{
-\item{x}{A data frame, matrix or vector +++++++++++++++++}
+\item{x}{A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.}
 
 \item{f}{A function that, applied to \code{x}, constitute the moment constraints.}
 
@@ -49,11 +50,13 @@ range of \code{f(x)}.}
 
 \item{show}{Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.}
 
-\item{names}{++++++++++++}
+\item{names}{Character vector, the names of stressed models.}
 
 \item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights}
 
 \item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1.}
+
+\item{log}{Logical, the option to print weights' statistics.}
 
 \item{...}{Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.}
 }
