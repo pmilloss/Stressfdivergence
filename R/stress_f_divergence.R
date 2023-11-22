@@ -144,8 +144,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   new_weights[[temp]] <- w
 
   type <- list("moment") #++++++++++++++++++++
-  my_list <- SWIM::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
-  if (SWIM::is.SWIM(x)) my_list <- merge(x, my_list)
+  my_list <- SWIM:::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
+  if (SWIM:::is.SWIM(x)) my_list <- merge(x, my_list)
 
   if (show == TRUE) print(sol)
 
