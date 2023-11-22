@@ -99,7 +99,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'Jeffrey' or 'user' ")
 
   constr <- function(L){
-    RN <- inv.div(pmax(d.div0, L[1] + L[2] * x))
+    RN <- inv.div(pmax(d.div0, L[1] + L[2] * z))
     C1 <- sum(p * RN) - 1
     C2 <- sum(p * RN * z) - m
     return(c(C1, C2))
@@ -109,11 +109,11 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
 
   if (!is.null(d.inv)) {
     J <- function(L) {
-      d.RN <- d.inv(L[1] + L[2] * x)
-      ind <- (L[1] + L[2] * x > d.div0)
+      d.RN <- d.inv(L[1] + L[2] * z)
+      ind <- (L[1] + L[2] * z > d.div0)
       J11 <- sum(p * d.RN * ind)
-      J12 <- sum(p * d.RN * x * ind)
-      J22 <- sum(p * d.RN * x * x * ind)
+      J12 <- sum(p * d.RN * z * ind)
+      J22 <- sum(p * d.RN * z * z * ind)
       jac <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
       return(jac)
     }
