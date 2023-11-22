@@ -70,7 +70,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div <- function(x)2 * x
     d.div0 <- d.div(0)
     d.inv <- function(x)0.5
-  } else if (div == "KL" | (div == "Alpha" & alpha == 1)) {
+  } else if (div == "KL" | (div == "Alpha" & identical(alpha, 1))) {
     inv.div <- function(x)exp(x - 1)
     d.div <- function(x)1 + log(x)
     d.div0 <- -Inf
