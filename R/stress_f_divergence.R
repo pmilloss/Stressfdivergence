@@ -1,6 +1,7 @@
 #' stress_mean_div
 #'
 #' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
+#'
 #' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #'
 #' @param f A function that, applied to \code{x}, constitute the moment constraints.
@@ -30,13 +31,15 @@
 #'
 #' @param start A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights
 #'
-#' @param sumRN Logical. If true, the scenario weights are normalized so as to average to 1.
+#' @param sumRN Logical. If true, the scenario weights are normalized so as to average to 1 exactly.
 #'
 #' @param log Logical, the option to print weights' statistics.
 #'
 #' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergnce.
+#'
+#' @author Pietro Millossovich
 #'
 #' @return A named list
 #' @export
