@@ -52,7 +52,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, theta, div = c("Chi2"
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
   if (!is.numeric(k)) stop("k must be a numeric vector")
-  if (!is.numeric(m)) stop("m must be numeric")
+  # if (!is.numeric(m)) stop("m must be numeric")
 
   if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
 
