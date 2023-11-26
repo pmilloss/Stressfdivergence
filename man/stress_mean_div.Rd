@@ -54,7 +54,7 @@ range of \code{f(x)}.}
 
 \item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights}
 
-\item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1.}
+\item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1 exactly.}
 
 \item{log}{Logical, the option to print weights' statistics.}
 
@@ -68,4 +68,7 @@ Provides weights on simulated scenarios from a baseline stochastic model, such t
 }
 \seealso{
 See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergnce.
+}
+\author{
+Pietro Millossovich
 }

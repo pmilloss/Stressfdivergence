@@ -1,6 +1,6 @@
 #' stress_mean_div
 #'
-#' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
+#' Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model. +++++++++++++
 #'
 #' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #'
@@ -10,6 +10,8 @@
 #'
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
 #' range of \code{f(x)}.
+#'
+#' @param theta Numeric, the stressed divergence of +++++++ range of \code{f(x)}.
 #'
 #' @param div Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #'
@@ -44,7 +46,7 @@
 #' @return A named list
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m, theta, div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"), inv.div = NULL, d.div = NULL, d.inv = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, ...){
 
   if (SWIM:::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
@@ -69,12 +71,14 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
   if (div == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
   if (div == "Chi2" | (div == "Alpha" & identical(alpha, 2))) {
-    inv.div <- function(x)0.5 * x
+    div <- function(x)x ^ 2 - 1
     d.div <- function(x)2 * x
+    inv.div <- function(x)0.5 * x
     d.div0 <- d.div(0)
     d.inv <- function(x)0.5
     div <- "Chi2"
   } else if (div == "KL" | (div == "Alpha" & identical(alpha, 1))) {
+    div <- function(x)ifelse(x > 0, x * log(x), 0)
     inv.div <- function(x)exp(x - 1)
     d.div <- function(x)1 + log(x)
     d.div0 <- -Inf
@@ -104,29 +108,35 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, div = c("Chi2", "KL",
     d.div0 <- d.div(0)
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'Jeffrey' or 'user' ")
 
-  constr <- function(L){
+  if (!is.null(m)) constr <- function(L){
     RN <- inv.div(pmax(d.div0, L[1] + L[2] * z))
     C1 <- sum(p * RN) - 1
     C2 <- sum(p * RN * z) - m
+    return(c(C1, C2))
+  } else constr <- function(L){
+    RN <- inv.div(pmax(d.div0, L[1] + L[2] * z))
+    C1 <- sum(p * RN) - 1
+    C2 <- sum(p * div(RN)) - theta
     return(c(C1, C2))
   }
 
   if (is.null(start)) start <- c(L1 = d.div(1), L2 = 0)
 
-  if (!is.null(d.inv)) {
-    J <- function(L) {
-      d.RN <- d.inv(L[1] + L[2] * z)
-      ind <- (L[1] + L[2] * z > d.div0)
-      J11 <- sum(p * d.RN * ind)
-      J12 <- sum(p * d.RN * z * ind)
-      J22 <- sum(p * d.RN * z * z * ind)
-      jac <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
-      return(jac)
-    }
-    sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
-  } else {
-    sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
-    }
+  # if (!is.null(d.inv)) {
+  #   J <- function(L) {
+  #     d.RN <- d.inv(L[1] + L[2] * z)
+  #     ind <- (L[1] + L[2] * z > d.div0)
+  #     J11 <- sum(p * d.RN * ind)
+  #     J12 <- sum(p * d.RN * z * ind)
+  #     J22 <- sum(p * d.RN * z * z * ind)
+  #     jac <- matrix(c(J11, J12, J12, J22), nrow = 2, byrow = TRUE)
+  #     return(jac)
+  #   }
+  #   sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
+  # } else {
+  #   sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
+  #   }
+  sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 
