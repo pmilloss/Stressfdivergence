@@ -6,6 +6,9 @@ stress <- 1.2
 t <- stress * mean(x)
 range(x)
 
+debug(stress_mean_div)
+res_KL <- stress_mean_div(x = x, theta = 3, div = "KL", show = T)
+
 res_KL <- stress_mean_div(x = x, m = t, div = "KL", show = T)
 res_KL.1 <- stress_mean_div(x = x, m = t, div = "KL", normalise = FALSE, show = T)
 SWIM::plot_weights(res_KL, xCol = 1)

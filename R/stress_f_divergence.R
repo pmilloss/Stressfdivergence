@@ -59,11 +59,11 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m, theta, div = c("Chi2"
   z <- f(x_data[, k])
   min.fz <- min(z)
   max.fz <- max(z)
-  if (m < min.fz | m > max.fz) stop("m must be in the range of f(x)")
+  # if (m < min.fz | m > max.fz) stop("m must be in the range of f(x)")
 
   if (normalise == TRUE) {
     z <- (z - min.fz) / (max.fz - min.fz)
-    m <- (m - min.fz) / (max.fz - min.fz)
+    # m <- (m - min.fz) / (max.fz - min.fz)
     }
 
   if (div == "user" & (is.null(inv.div) | is.null(d.inv))) stop("For a user defined divergence, the arguments 'inv.div' and 'd.div' must be provided")
