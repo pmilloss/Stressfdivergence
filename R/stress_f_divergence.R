@@ -13,7 +13,7 @@
 #'
 #' @param theta Numeric, the stressed divergence of the model.  range of \code{f(x)}. +++++++++++++++++
 #'
-#' @param dvg Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam" or "user". When a user specified divergence is chosen, the additional list 'div' containing ++++++++parameters "inv" (inverse of the first derivative of the divergence function) and "d.div0" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
+#' @param dvg Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". When a user specified divergence is chosen, the additional list 'div' containing ++++++++parameters "inv" (inverse of the first derivative of the divergence function) and "d.div0" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #'
 #' @param div.usr When a user divergence function is used, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence.
 #'
@@ -33,6 +33,8 @@
 #'
 #' @param log Logical, the option to print weights' statistics.
 #'
+#' @param use.jac Logical, should the Jacobian matrix be used in the call to \code{\link[nleqslv]{nleqslv}}. Set to TRUE when a user divergence is used and the function div.usr$d.div is provided.
+#'
 #' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
@@ -40,9 +42,10 @@
 #' @author Pietro Millossovich
 #'
 #' @return A named list
+#'
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
 
   min.d <- !is.null(m)
   max.l <- !is.null(theta)
@@ -96,16 +99,14 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     div0 <- -3
     # d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
     d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
-  } else if (dvg == "Jeffrey") {
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   } else if (dvg == "LeCam") {
     div <- function(x)0.5 * (1 - x) / (x + 1)
   } else if (dvg == "user") {
     div0 <- div.usr$div0
     inv <- div.usr$inv
     if (max.l) div <- div.usr$div
-  } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'Jeffrey', 'LeCam' or 'user' ")
+    use.jac <- TRUE
+  } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'LeCam' or 'user' ")
 
   z <- f(x_data[, k])
   min.fz <- min(z)
@@ -115,9 +116,11 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     }
   # add a check if there are too few points above m as in stress VaR????
 
-  pn <- p[which.max(z)]
-  max.div <- div(1 / pn) * pn
-  if (max.l & (theta < 0 | theta > max.div)) stop("theta must be in the range [0,max.div], where max.div=div(pn)/pn and pn is the weight corresponding to the largest observation") # ++++++++++++++++
+  if (max.l) {
+    pn <- p[which.max(z)]
+    max.div <- div(1 / pn) * pn
+    if (theta < 0 | theta > max.div) stop("theta must be in the range [0,max.div], where max.div=div(pn)/pn and pn is the weight corresponding to the largest observation") # ++++++++++++++++
+    }
 
   if (min.d & normalise == TRUE) {
     z <- (z - min.fz) / (max.fz - min.fz)
@@ -138,8 +141,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0)
 
-
-  if (exists(d.inv)) {
+  if (exists("d.inv") & use.jac = TRUE) {
     if (min.d) {
     J <- function(L) {
       d.RN <- d.inv(L[1] + L[2] * z)
