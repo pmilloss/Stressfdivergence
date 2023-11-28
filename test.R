@@ -7,7 +7,16 @@ t <- stress * mean(x)
 range(x)
 
 debug(stress_mean_div)
-res_KL <- stress_mean_div(x = x, theta = 3, dvg = "KL", show = T)
+res_KL <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T, control = list(allowSingular = TRUE))
+
+mean(x)
+sum_KL <- summary(res_KL, base = TRUE)
+sum_KL$`stress 1`$X1[1]
+
+res_KL1 <- stress_mean_div(x, m = sum_KL$`stress 1`$X1[1], dvg = "KL", show = T)
+summary(res_KL1, base = TRUE)
+
+summary(res_KL, base = TRUE)
 
 res_KL <- stress_mean_div(x = x, m = t, div = "KL", show = T)
 res_KL.1 <- stress_mean_div(x = x, m = t, div = "KL", normalise = FALSE, show = T)

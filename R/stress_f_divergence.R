@@ -141,7 +141,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0)
 
-  if (exists("d.inv") & use.jac = TRUE) {
+  if (exists("d.inv") & use.jac == TRUE) {
     if (min.d) {
     J <- function(L) {
       d.RN <- d.inv(L[1] + L[2] * z)
