@@ -137,7 +137,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0)
 
 
-  if (exists(d.inv) & min.d) {
+  if (exists(d.inv)) {
+    if (min.d) {
     J <- function(L) {
       d.RN <- d.inv(L[1] + L[2] * z)
       ind <- (L[1] + L[2] * z > div0)
@@ -146,7 +147,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
       J22 <- sum(p * d.RN * z * z * ind)
       jac <- matrix(c(J11, J12, J12, J22), nrow = 2)
       return(jac)
-    } else if (exists(d.inv) & max.l) {
+      }
+    } else {
       J <- function(L) {
         d.RN <- d.inv(L[1] + L[2] * z)
         ind <- (L[1] + L[2] * z > div0)
@@ -157,11 +159,10 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
         J22 <- L[1] * J12 + L[2] * J22
         jac <- matrix(c(J11, J21, J12, J22), nrow = 2)
         return(jac)
+      }
     }
     sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
-  } else {
-    sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
-    }
+  } else sol <- nleqslv::nleqslv(x = start, fn = constr, ...)
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 

@@ -8,11 +8,10 @@ stress_mean_div(
   x,
   f = function(x) x,
   k = 1,
-  m,
-  div = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "user"),
-  inv.div = NULL,
-  d.div = NULL,
-  d.inv = NULL,
+  m = NULL,
+  theta = NULL,
+  dvg = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"),
+  div.usr = NULL,
   p = rep(1/length(x), length(x)),
   alpha = NULL,
   normalise = TRUE,
@@ -27,32 +26,30 @@ stress_mean_div(
 \arguments{
 \item{x}{A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.}
 
-\item{f}{A function that, applied to \code{x}, constitute the moment constraints.}
+\item{f}{A function that, applied to \code{x}, generates the valued of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.}
 
-\item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first columnn is selected and the identity function is applied.}
+\item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default/, the first columnn is selected.}
 
 \item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the
 range of \code{f(x)}.}
 
-\item{div}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey" or "user". When a user specified divergence is chosen, the additional parameters "inv.div" (inverse of the divergence function) and "d.div" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
+\item{theta}{Numeric, the stressed divergence of the model.  range of \code{f(x)}. +++++++++++++++++}
 
-\item{inv.div}{A function specifying the inverse of the divergence function, when a user divergence function is used.}
+\item{dvg}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam" or "user". When a user specified divergence is chosen, the additional list 'div' containing ++++++++parameters "inv" (inverse of the first derivative of the divergence function) and "d.div0" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
 
-\item{d.div}{A function specifying the derivative of the divergence function, when a user divergence function is used.}
-
-\item{d.inv}{An optional function specifying the derivative of the inverse of the divergence function, when a user divergence function is chosen.}
+\item{div.usr}{When a user divergence function is used, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence.}
 
 \item{p}{Numeric. A set of optional nonnegative scenario weights specifying the baseline model.}
 
 \item{alpha}{Numeric. The 'alpha' parameter when the Alpha divergence is used.}
 
-\item{normalise}{Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval.}
+\item{normalise}{Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval. Not used when 'theta' is specified.}
 
 \item{show}{Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.}
 
 \item{names}{Character vector, the names of stressed models.}
 
-\item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights}
+\item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.}
 
 \item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1 exactly.}
 
@@ -64,10 +61,10 @@ range of \code{f(x)}.}
 A named list
 }
 \description{
-Provides weights on simulated scenarios from a baseline stochastic model, such that a stressed model component (random variable) fulfill a moment constraint. Scenario weights are selected by constrained minimisation of a selected divergence to baseline model.
+Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the stressed moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
 }
 \seealso{
-See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergnce.
+See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
 }
 \author{
 Pietro Millossovich
