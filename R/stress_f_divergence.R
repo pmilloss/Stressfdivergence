@@ -110,7 +110,9 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   z <- f(x_data[, k])
   min.fz <- min(z)
   max.fz <- max(z)
-  if (min.d & (m < min.fz | m > max.fz)) stop("m must be in the range of f(x)")
+  if (min.d) {
+    if (m < min.fz | m > max.fz) stop("m must be in the range of f(x)")
+    }
   # add a check if there are too few points above m as in stress VaR????
 
   pn <- p[which.max(z)]
