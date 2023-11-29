@@ -20,6 +20,7 @@ stress_mean_div(
   start = NULL,
   sumRN = FALSE,
   log = FALSE,
+  use.jac = FALSE,
   ...
 )
 }
@@ -33,11 +34,11 @@ stress_mean_div(
 \item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the
 range of \code{f(x)}.}
 
-\item{theta}{Numeric, the stressed divergence of the model.  range of \code{f(x)}. +++++++++++++++++}
+\item{theta}{Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the}
 
-\item{dvg}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam" or "user". When a user specified divergence is chosen, the additional list 'div' containing ++++++++parameters "inv" (inverse of the first derivative of the divergence function) and "d.div0" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
+\item{dvg}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
 
-\item{div.usr}{When a user divergence function is used, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence.}
+\item{div.usr}{When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which}
 
 \item{p}{Numeric. A set of optional nonnegative scenario weights specifying the baseline model.}
 
@@ -54,6 +55,8 @@ range of \code{f(x)}.}
 \item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1 exactly.}
 
 \item{log}{Logical, the option to print weights' statistics.}
+
+\item{use.jac}{Logical, should the Jacobian matrix be used in the call to \code{\link[nleqslv]{nleqslv}}. Set to TRUE when a user divergence is used and the function div.usr$d.div is provided.}
 
 \item{...}{Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.}
 }

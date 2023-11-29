@@ -11,11 +11,11 @@
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
 #' range of \code{f(x)}.
 #'
-#' @param theta Numeric, the stressed divergence of the model.  range of \code{f(x)}. +++++++++++++++++
+#' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the
 #'
-#' @param dvg Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". When a user specified divergence is chosen, the additional list 'div' containing ++++++++parameters "inv" (inverse of the first derivative of the divergence function) and "d.div0" (derivative of the divergence function) must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 or 2 the KL, respectively the Chi2, divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
+#' @param dvg Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #'
-#' @param div.usr When a user divergence function is used, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence.
+#' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which
 #'
 #' @param p Numeric. A set of optional nonnegative scenario weights specifying the baseline model.
 #'
