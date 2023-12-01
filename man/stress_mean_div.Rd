@@ -10,7 +10,8 @@ stress_mean_div(
   k = 1,
   m = NULL,
   theta = NULL,
-  dvg = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"),
+  dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam",
+    "user"),
   div.usr = NULL,
   p = rep(1/length(x), length(x)),
   alpha = NULL,
@@ -36,7 +37,7 @@ range of \code{f(x)}.}
 
 \item{theta}{Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the}
 
-\item{dvg}{Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
+\item{dvg}{Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
 
 \item{div.usr}{When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which}
 
@@ -64,7 +65,7 @@ range of \code{f(x)}.}
 A named list
 }
 \description{
-Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the stressed moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
+Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
 }
 \seealso{
 See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
