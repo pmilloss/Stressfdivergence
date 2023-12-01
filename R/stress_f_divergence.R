@@ -83,7 +83,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     inv <- function(x)ifelse(x < 0, -1 / x, Inf)
     d.div <- function(x)ifelse(x > 0, -1 / x, -Inf)
     div0 <- -Inf
-    d.inv <- function(x)inv(x)ifelse(x < 0, 1 / x ^ 2)
+    d.inv <- function(x)inv(x)ifelse(x < 0, 1 / x ^ 2, Inf)
   } else if (dvg == "Hellinger") {
     div <- function(x)(sqrt(x) - 1) ^ 2
     inv <- function(x)1 / (1 - x) ^ 2
