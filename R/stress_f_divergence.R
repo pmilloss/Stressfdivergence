@@ -124,7 +124,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (max.l) {
     pn <- p[which.max(z)]
-    max.div <- div(1 / pn) * pn
+    max.div <- div(0) * (1 - pn) + div(1 / pn) * pn
     if (theta < 0 | theta > max.div) stop("theta must be in the range [0,max.div], where max.div=div(pn)/pn and pn is the weight corresponding to the largest observation") # ++++++++++++++++
     }
 
