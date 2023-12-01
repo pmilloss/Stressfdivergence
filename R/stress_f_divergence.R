@@ -1,6 +1,6 @@
 #' stress_mean_div
 #'
-#' Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the stressed moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
+#' Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
 #'
 #' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #'
@@ -73,9 +73,9 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     div0 <- d.div(0)
     d.inv <- function(x)0.5
   } else if (dvg == "KL" | (dvg == "Alpha" & identical(alpha, 1))) {
-    div <- function(x)ifelse(x > 0, x * log(x), 0)
+    div <- function(x)ifelse(x > 0, x * log(x), Inf)
     inv <- function(x)exp(x - 1)
-    d.div <- function(x)1 + log(x)
+    d.div <- function(x)ifelse(x > 0, 1 + log(x), -Inf)
     div0 <- -Inf
     d.inv <- function(x)inv(x)
   } else if (dvg == "Hellinger") {
