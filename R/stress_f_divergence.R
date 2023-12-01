@@ -13,7 +13,7 @@
 #'
 #' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the
 #'
-#' @param dvg Character. One of "Chi2", "KL", "Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
+#' @param dvg Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #'
 #' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which
 #'
@@ -45,7 +45,7 @@
 #'
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
 
   min.d <- !is.null(m)
   max.l <- !is.null(theta)
@@ -78,6 +78,12 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     d.div <- function(x)ifelse(x > 0, 1 + log(x), -Inf)
     div0 <- -Inf
     d.inv <- function(x)inv(x)
+  } else if (dvg == "revKL" | (dvg == "Alpha" & identical(alpha, 0))) {
+    div <- function(x)ifelse(x > 0, -log(x), Inf)
+    inv <- function(x)ifelse(x < 0, -1 / x, Inf)
+    d.div <- function(x)ifelse(x > 0, -1 / x, -Inf)
+    div0 <- -Inf
+    d.inv <- function(x)inv(x)ifelse(x < 0, 1 / x ^ 2)
   } else if (dvg == "Hellinger") {
     div <- function(x)(sqrt(x) - 1) ^ 2
     inv <- function(x)1 / (1 - x) ^ 2
