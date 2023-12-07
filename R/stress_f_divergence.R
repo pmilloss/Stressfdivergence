@@ -60,7 +60,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
 
-  if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0' must be provided")
+  if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0'")
 
   if (dvg == "user" & max.l & !is.function(div.usr$div)) stop("For a user defined divergence, when 'theta' is specified, the list 'div.usr' must also contain the object 'div'")
 
@@ -85,11 +85,11 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     div0 <- -Inf
     d.inv <- function(x)ifelse(x < 0, 1 / x ^ 2, Inf)
   } else if (dvg == "Hellinger") {
-    div <- function(x)(sqrt(x) - 1) ^ 2
-    inv <- function(x)1 / (1 - x) ^ 2
-    d.div <- function(x)1 - 1 / sqrt(x)
+    div <- function(x)ifelse(x >= 0, (sqrt(x) - 1) ^ 2, Inf)
+    inv <- function(x)ifelse(x < 1, 1 / (1 - x) ^ 2, Inf)
+    d.div <- function(x)ifelse(x > 0, 1 - 1 / sqrt(x), -Inf)
     div0 <- -Inf
-    d.inv <- function(x)2 / (1 - x) ^ 3
+    d.inv <- function(x)ifelse(x < 1, 2 / (1 - x) ^ 3, Inf)
   } else if (dvg == "Alpha") {
     div <- function(x)(x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1))
     inv <- function(x)(-2 * x * (1 + alpha)) ^ (-2 / (1 + alpha))

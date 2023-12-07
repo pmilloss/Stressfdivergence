@@ -12,6 +12,7 @@ range(x)
 res_KL <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T, use.jac = TRUE, control = list(allowSingular = TRUE))
 res_KL1 <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T) # do not use Jacobian
 
+
 all.equal(get_weights(res_KL), get_weights(res_KL1))
 
 summ_KL <- summary(res_KL, base = TRUE)
@@ -21,6 +22,8 @@ mean_KL <- summ_KL$`stress 1`$X1[1]
 res_KL2 <- stress_mean_div(x, m = mean_KL, dvg = "KL", show = T)
 summary(res_KL2)
 summary(res_KL)
+
+all.equal(get_weights(res_KL), get_weights(res_KL2))
 
 
 
@@ -39,6 +42,24 @@ all.equal(res_KL$new_weights, res_KL.2$new_weights)
 res_KL <- stress_mean_div(x = x, m = t, div = "KL", show = T, control = list(maxit = 1000))
 plot(x, res_KL)
 
+
+# reverse KL
+# res_KL <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T, use.jac = TRUE) # not run - does not work as Jacobian is singular
+res_KL <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T, use.jac = TRUE, control = list(allowSingular = TRUE))
+res_KL1 <- stress_mean_div(x = x, theta = 0.1, dvg = "KL", show = T) # do not use Jacobian
+
+
+all.equal(get_weights(res_KL), get_weights(res_KL1))
+
+summ_KL <- summary(res_KL, base = TRUE)
+mean_KL <- summ_KL$`stress 1`$X1[1]
+
+# now stress the mean
+res_KL2 <- stress_mean_div(x, m = mean_KL, dvg = "KL", show = T)
+summary(res_KL2)
+summary(res_KL)
+
+all.equal(get_weights(res_KL), get_weights(res_KL2))
 
 
 res_Chi2 <- stress_mean_div(x = x, m = mean(x) * 1.2, dvg = "Chi2", show = T, use.jac = TRUE)
@@ -102,5 +123,6 @@ div_trian1 <- mean((w_trian1 - 1) ^ 2 / (w_trian1 + 1))
 
 # reverse KL
 
+res_revKL <- stress_mean_div(x = x, m = mean(x) * 1.5, dvg = "user", div.usr = list(div = function(x)-log(x), inv = function(x)-1 / x, div0 = -Inf, d.div = function(x)-1 / x), show = TRUE, normalise = FALSE)# fails
 
-
+debug(stress_mean_div)
