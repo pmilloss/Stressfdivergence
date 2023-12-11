@@ -45,7 +45,7 @@
 #'
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = rep(1 / length(x), length(x)), alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = NULL, alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
 
   min.d <- !is.null(m)
   max.l <- !is.null(theta)
@@ -58,7 +58,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (min.d & !is.numeric(m)) stop("m must be numeric")
   if (max.l & !is.numeric(theta)) stop("theta must be numeric")
 
-  if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
+  if (is.null(p)) p <- rep(1 / nrow(x), length = nrow(x)) else if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
 
   if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0'")
 
@@ -90,7 +90,14 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     d.div <- function(x)ifelse(x > 0, 1 - 1 / sqrt(x), -Inf)
     div0 <- -Inf
     d.inv <- function(x)ifelse(x < 1, 2 / (1 - x) ^ 3, Inf)
-  } else if (dvg == "Alpha") {
+  } else if (dvg == "Alpha" & alpha > 1) {
+    div <- function(x)ifelse(x >= 0, (x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1)), Inf)
+    div0 <- -1 / (alpha - 1)
+    inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1)), 0)
+    d.div <- function(x)ifelse(x > 0, (x ^ (alpha - 1) - 1) / (alpha -1), div0)
+    d.inv <- function(x)ifelse(x > 0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1) - 1), )
+    dvg <- paste(dvg, " a=", alpha)
+  } else if (dvg == "Alpha" & alpha > 2) {
     div <- function(x)(x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1))
     inv <- function(x)(-2 * x * (1 + alpha)) ^ (-2 / (1 + alpha))
     d.div <- function(x)(-0.5 * (x ^ (-0.5 * (1 + alpha))) / (1 + alpha))
@@ -98,7 +105,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     d.inv <- function(x)4 * (-2 * x * (1 + alpha)) ^ (- (3 + alpha) / (1 + alpha))
     dvg <- paste(dvg, " a=", alpha)
   } else if (dvg == "Triangular") {
-    div <- function(x)(x - 1) ^ 2 / (x + 1)
+    div <- function(x)ifelse(x >= 1, (x - 1) ^ 2 / (x + 1), Inf)
     inv <- function(x)-1 + 2 / sqrt(ifelse(x < 1, 1 - x, 0))
       # ifelse(x < 1, -1 + 2 / sqrt(1 - x), Inf)
     d.div <- function(x)(x - 1) * (x + 3) / (x + 1) ^ 2
@@ -176,7 +183,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 
-  w <- inv(pmax(div0, sol$x[1] + sol$x[2] * z))
+  w <- p * inv(pmax(div0, sol$x[1] + sol$x[2] * z))
   if(sumRN) w <- w / mean(w)
 
   if (min.d) {
