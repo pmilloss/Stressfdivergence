@@ -122,10 +122,10 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'LeCam' or 'user' ")
 
   z <- f(x_data[, k])
-  min.fz <- min(z)
-  max.fz <- max(z)
+  min.z <- min(z)
+  max.z <- max(z)
   if (min.d) {
-    if (m < min.fz | m > max.fz) stop("m must be in the range of f(x)")
+    if (m < min.z | m > max.z) stop("m must be in the range of f(x)")
     }
   # add a check if there are too few points above m as in stress VaR????
 
@@ -136,48 +136,46 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     }
 
   if (min.d & normalise == TRUE) {
-    z <- (z - min.fz) / (max.fz - min.fz)
-    m <- (m - min.fz) / (max.fz - min.fz)
+    z <- (z - min.z) / (max.z - min.z)
+    m <- (m - min.z) / (max.z - min.z)
   }
 
   if (min.d) constr <- function(L){
-    RN <- inv(pmax(div0, L[1] + L[2] * z))
-    C1 <- sum(p * RN) - 1
-    C2 <- sum(p * RN * z) - m
+    q <- p * inv(pmax(div0, L[1] + L[2] * z))
+    C1 <- sum(q) - 1
+    C2 <- sum(q * z) - m
     return(c(C1, C2))
   } else constr <- function(L){
-    RN <- inv(pmax(div0, L[1] + L[2] * z))
-    C1 <- sum(p * RN) - 1
-    C2 <- sum(p * div(RN)) - theta
+    w <- inv(pmax(div0, L[1] + L[2] * z))
+    C1 <- sum(p * w) - 1
+    C2 <- sum(p * div(w)) - theta
     return(c(C1, C2))
   }
 
-  if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0)
+  if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0) ######
 
   if (exists("d.inv") & use.jac == TRUE) {
     if (min.d) {
     J <- function(L) {
-      # d.RN <- p * d.inv(L[1] + L[2] * z)
       ind <- (L[1] + L[2] * z > div0)
-      adjQ <- p * d.inv(L[1] + L[2] * z) * ind
-      J11 <- sum(adjQ)
-      J12 <- sum(adjQ * z)
-      J22 <- sum(adjQ * z * z)
+      q1 <- p * d.inv(L[1] + L[2] * z) * ind
+      J11 <- sum(q1)
+      J12 <- sum(q1 * z)
+      J22 <- sum(q1 * z * z)
       jac <- matrix(c(J11, J12, J12, J22), nrow = 2)
       return(jac)
       }
     } else {
       J <- function(L) {
-        # d.RN <- d.inv(L[1] + L[2] * z)
-        ind <- (L[1] + L[2] * z > div0)
-        adjQ <- p * d.inv(L[1] + L[2] * z) * ind
-        J11 <- sum(adjQ)
-        J12 <- sum(adjQ * z)
-        J22 <- sum(adjQ * z * z)
+        ind <- (L[1] + L[2] * fx > div0)
+        q1 <- p * d.inv(L[1] + L[2] * z) * ind
+        J11 <- sum(q1)
+        J12 <- sum(q1 * z)
+        J22 <- sum(q1 * z * z)
         J21 <- L[1] * J11 + L[2] * J12
         J22 <- L[1] * J12 + L[2] * J22
         jac <- matrix(c(J11, J21, J12, J22), nrow = 2)
-        return(jac)
+        return(jac) ################## double check
       }
     }
     sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
@@ -185,21 +183,21 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 
-  w <- p * inv(pmax(div0, sol$x[1] + sol$x[2] * z))
-  if(sumRN) w <- w / mean(w)
+  w <- inv(pmax(div0, sol$x[1] + sol$x[2] * z))########
+  # if(sumRN) w <- w / mean(w) ################
 
   if (min.d) {
-    m.ac <- sum(p * w * z)
+    m.ac <- sum(p * w * z) ############
     if(normalise == TRUE) {
-      m <- min.fz + (max.fz - min.fz) * m
-      m.ac <- min.fz + (max.fz - min.fz) * m.ac
+      m <- min.z + (max.z - min.z) * m
+      m.ac <- min.z + (max.z - min.z) * m.ac
     }
     err <- m - m.ac
     rel.err <- (err / m) * (m != 0)
     outcome <- c(required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
     constr_moment <- list("k" = k, "m" = m, "f" = f, "div" = dvg)
   } else {
-    theta.ac <- sum(p * div(w))
+    theta.ac <- sum(p * div(w)) ##############
     err <- theta - theta.ac
     rel.err <- (err / theta) * (theta != 0)
     outcome <- c(required_divergence = theta, achieved_divergence = theta.ac, abs_error = err, rel_error = rel.err)
