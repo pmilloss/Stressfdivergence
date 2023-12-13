@@ -157,21 +157,23 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (exists("d.inv") & use.jac == TRUE) {
     if (min.d) {
     J <- function(L) {
-      d.RN <- d.inv(L[1] + L[2] * z)
+      # d.RN <- p * d.inv(L[1] + L[2] * z)
       ind <- (L[1] + L[2] * z > div0)
-      J11 <- sum(p * d.RN * ind)
-      J12 <- sum(p * d.RN * z * ind)
-      J22 <- sum(p * d.RN * z * z * ind)
+      adjQ <- p * d.inv(L[1] + L[2] * z) * ind
+      J11 <- sum(adjQ)
+      J12 <- sum(adjQ * z)
+      J22 <- sum(adjQ * z * z)
       jac <- matrix(c(J11, J12, J12, J22), nrow = 2)
       return(jac)
       }
     } else {
       J <- function(L) {
-        d.RN <- d.inv(L[1] + L[2] * z)
+        # d.RN <- d.inv(L[1] + L[2] * z)
         ind <- (L[1] + L[2] * z > div0)
-        J11 <- sum(p * d.RN * ind)
-        J12 <- sum(p * d.RN * z * ind)
-        J22 <- sum(p * d.RN * z * z * ind)
+        adjQ <- p * d.inv(L[1] + L[2] * z) * ind
+        J11 <- sum(adjQ)
+        J12 <- sum(adjQ * z)
+        J22 <- sum(adjQ * z * z)
         J21 <- L[1] * J11 + L[2] * J12
         J22 <- L[1] * J12 + L[2] * J22
         jac <- matrix(c(J11, J21, J12, J22), nrow = 2)
