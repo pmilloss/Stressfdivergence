@@ -1,7 +1,37 @@
 library(SWIM)
 
 set.seed(0)
-n <- 10 ^ 5
+x <- as.data.frame(cbind(
+  "normal" = rnorm(1000),
+  "gamma" = rgamma(1000, shape = 2)))
+res1 <- stress(type = "VaR", x = x,
+  alpha = 0.9, q_ratio = 1.05)
+
+newVaR <- quantile(x[, 1], probs = 0.9, type = 1) * 1.05
+debug(stress_mean_div)
+res2 <- stress_mean_div(res1, k = 1, f = function(x)1 * (x > newVaR), m = 0.1, dvg = "KL")
+
+
+quantile_stressed(res1, probs = 0.9, type = "(i-1)/(n-1)")
+quantile_stressed(res1, probs = 0.9, type = "i/(n+1)")
+quantile_stressed(res1, probs = 0.9, type = "i/n")
+quantile_stressed(res2, probs = 0.9, wCol = 2, type = "i/n")
+
+plot_weights(res2, wCol = 1)
+plot_weights(res2, wCol = 2)
+
+sum(get_weights(res2, wCol = 2))
+
+## calling stress_VaR directly
+## stressing "gamma"
+res2 <- stress_VaR(x = x, alpha = 0.9,
+  q_ratio = c(1.03, 1.05), k = 2)
+get_specs(res2)
+summary(res2)
+
+
+set.seed(0)
+n <- 10 ^ 4
 x <- rlnorm(n, meanlog = 1, sdlog = 1)
 mean(x)
 stress <- 1.2
@@ -79,12 +109,27 @@ plot_weights(res_Chi2, xCol = 1)
 
 # Hellinger
 
-res_Hell0 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", normalise = FALSE, show = T)# fails after inspection
-res_Hell <- stress_mean_div(x = x, m = t, div = "Hellinger", show = T)# fails after inspection
-res_Hell1 <- stress_mean_div(x = x, m = t, div = "Hellinger", show = T, xscalm = "auto", control = list(ftol = 10e-15, xtol = 10e-15, maxit = 1000)) # works better, changing the scaling
+res_Hell0 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", normalise = FALSE, show = T)
+plot_weights(res_Hell0, y_limits = c(0, 20))
+res_Hell <- stress_mean_div(x = res_Hell0, m = t, dvg = "Hellinger", show = T)# normalisation
+res_Hell1 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", show = T)# normalisation
+
+res_Hell2 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", show = T, xscalm = "auto", control = list(ftol = 10e-15, xtol = 10e-15, maxit = 1000)) # works better, changing the scaling
+plot_weights(res_Hell2, y_limits = c(0, 20))
+
 plot(x, res_Hell1$new_weights$`stress 1`, xlim = c(0, 150))
 plot(x, res_Hell1$new_weights$`stress 1`, xlim = c(0, 150), ylim = c(0, 10))
 lines(x, res_Hell1$new_weights$`stress 1`, xlim = c(0, 150), ylim = c(0, 10))# madness
+plot(x, res_Hell1$new_weights$`stress 1`, xlim = c(0, 10), ylim = c(0, 2))
+
+all(diff(res_Hell1$new_weights$`stress 1`[order(x)]) >= 0)
+
+
+res_Hell4 <- stress_mean_div(x = x, theta = 0.5, dvg = "Hellinger", show = T)
+
+
+
+
 
 
 alpha <- seq(-1.5, 3, by = 0.5)

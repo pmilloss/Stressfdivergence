@@ -58,7 +58,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (min.d & !is.numeric(m)) stop("m must be numeric")
   if (max.l & !is.numeric(theta)) stop("theta must be numeric")
 
-  if (is.null(p)) p <- rep(1 / nrow(x), length = nrow(x)) else if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
+  if (is.null(p)) p <- rep(1 / nrow(x_data), length = nrow(x)) else if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
 
   if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0'")
 
