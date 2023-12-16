@@ -3,38 +3,22 @@
 #' Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
 #'
 #' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
-#'
 #' @param f A function that, applied to \code{x}, generates the valued of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.
-#'
 #' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default/, the first columnn is selected.
-#'
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
 #' range of \code{f(x)}.
-#'
-#' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the
-#'
+#' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the #########
 #' @param dvg Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
-#'
-#' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which
-#'
+#' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
 #' @param p Numeric. A set of optional nonnegative scenario weights specifying the baseline model.
-#'
 #' @param alpha Numeric. The 'alpha' parameter when the Alpha divergence is used.
-#'
 #' @param normalise Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval. Not used when 'theta' is specified.
-#'
 #' @param show Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.
-#'
 #' @param names Character vector, the names of stressed models.
-#'
 #' @param start A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
-#'
 #' @param sumRN Logical. If true, the scenario weights are normalized so as to average to 1 exactly.
-#'
 #' @param log Logical, the option to print weights' statistics.
-#'
 #' @param use.jac Logical, should the Jacobian matrix be used in the call to \code{\link[nleqslv]{nleqslv}}. Set to TRUE when a user divergence is used and the function div.usr$d.div is provided.
-#'
 #' @param ... Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
@@ -67,7 +51,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (dvg == "Alpha" & (is.null(alpha) | !is.numeric(alpha))) stop("For the Alpha divergence, the numeric argument 'alpha' must be provided")
 
   if (dvg == "Chi2" | (dvg == "Alpha" & identical(alpha, 2))) {
-    div <- function(x)x ^ 2 - 1
+    div <- function(x)ifelse(x >= 0, x ^ 2 - 1, Inf)
     d.div <- function(x)2 * x
     inv <- function(x)0.5 * x
     div0 <- d.div(0)

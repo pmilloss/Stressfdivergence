@@ -10,6 +10,13 @@ res1 <- stress(type = "VaR", x = x,
 newVaR <- quantile(x[, 1], probs = 0.9, type = 1) * 1.05
 debug(stress_mean_div)
 res2 <- stress_mean_div(res1, k = 1, f = function(x)1 * (x > newVaR), m = 0.1, dvg = "KL")
+all.equal(get_weights(res2)[, 1], get_weights(res2)[, 2])
+
+
+
+
+
+
 
 
 quantile_stressed(res1, probs = 0.9, type = "(i-1)/(n-1)")
@@ -109,8 +116,12 @@ plot_weights(res_Chi2, xCol = 1)
 
 # Hellinger
 
-res_Hell0 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", normalise = FALSE, show = T)
-plot_weights(res_Hell0, y_limits = c(0, 20))
+t <- mean(x[, 2]) * 1.2
+res_Hell0 <- stress_mean_div(k = 2, x = x, m = t, dvg = "Hellinger", normalise = FALSE, show = T)
+plot_weights(res_Hell0, xCol = 2)
+
+
+, y_limits = c(0, 20))
 res_Hell <- stress_mean_div(x = res_Hell0, m = t, dvg = "Hellinger", show = T)# normalisation
 res_Hell1 <- stress_mean_div(x = x, m = t, dvg = "Hellinger", show = T)# normalisation
 
@@ -153,6 +164,9 @@ res_alpha3 <- stress_mean_div(x = x, m = mean(x) * 1.1, div = "Alpha", alpha = 4
 
 
 # triangular
+
+res_trian0 <- stress_mean_div(k = 2, x = x, m = t, dvg = "Triangular", show = TRUE, normalise = FALSE)# fails
+
 
 res_trian0 <- stress_mean_div(x = x, m = mean(x) * 1.5, dvg = "Triangular", show = TRUE, normalise = FALSE)# fails
 res_trian1 <- stress_mean_div(x = x, m = mean(x) * 1.5, dvg = "Triangular", show = TRUE) # works after normalisation
