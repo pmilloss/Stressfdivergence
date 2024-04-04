@@ -5,8 +5,7 @@
 #' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #' @param f A function that, applied to \code{x}, generates the valued of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.
 #' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default/, the first columnn is selected.
-#' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the
-#' range of \code{f(x)}.
+#' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the range of \code{f(x)}.
 #' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the #########
 #' @param dvg Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
@@ -23,7 +22,14 @@
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
 #'
+#' @details
+#' Additional details...
+#'
 #' @author Pietro Millossovich
+#'
+#' @examples
+#' # example code
+#'
 #'
 #' @return A named list
 #'
