@@ -120,7 +120,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     use.jac <- TRUE
   } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'LeCam' or 'user' ") # check+++++++++++++
 
-  z <- f(x_data[, k])
+  z <- apply(X = x_data[, k], MARGIN = 2, FUN = f)
   min.z <- min(z)
   max.z <- max(z)
   if (min.d) {
