@@ -2,14 +2,14 @@
 #'
 #' Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
 #'
-#' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
+#' @param x A vector, matrix or data frame containing realisations of random variables. Columns of \code{x correspond to random variables; OR \cr
+#' A \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.
 #' @param f A function that, applied to \code{x}, generates the valued of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.
-#' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default/, the first columnn is selected.
+#' @param k A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first columnn is selected.
 #' @param m Numeric, the stressed moments of \code{f(x)}. Must be in the range of \code{f(x)}.
 #' @param theta Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the #########
 #' @param dvg Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
 #' @param div.usr When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
-#' @param p Numeric. A set of optional nonnegative scenario weights specifying the baseline model.
 #' @param alpha Numeric. The 'alpha' parameter when the Alpha divergence is used.
 #' @param normalise Logical. If true, values of \code{f(x)} are linearly scaled to the unit interval. Not used when 'theta' is specified.
 #' @param show Logical. If true, print the result of the call to \code{\link[nleqslv]{nleqslv}}.
@@ -22,8 +22,17 @@
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
 #'
-#' @details
-#' Additional details...
+#' @details The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+#'
+#'  \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+#'
+#' There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
+#'     return a warning if the termination code provided by \code{nleqslv} is
+#'     different from 1 (convergence has been achieved). It is recommended to
+#'     check the result of the call to \code{nleqslv} using the "show" argument. The
+#'     user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for
+#'     further details.
+#'
 #'
 #' @author Pietro Millossovich
 #'
@@ -35,7 +44,7 @@
 #'
 #' @export
 
-stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, p = NULL, alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
+stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam", "user"), div.usr = NULL, alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
 
   min.d <- !is.null(m)
   max.l <- !is.null(theta)
@@ -48,7 +57,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (min.d & !is.numeric(m)) stop("m must be numeric")
   if (max.l & !is.numeric(theta)) stop("theta must be numeric")
 
-  if (is.null(p)) p <- rep(1 / nrow(x_data), length = nrow(x_data)) else if (!is.numeric(p) | any(p < 0) | anyNA(p)) stop("p must be a vector of nonnegative weights") else p <- p / sum(p)
+  n <- nrow(x_data)
 
   if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0'")
 
@@ -109,7 +118,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     inv <- div.usr$inv
     if (max.l) div <- div.usr$div
     use.jac <- TRUE
-  } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'LeCam' or 'user' ")
+  } else stop("The argument 'div' must be one of 'Chi2', 'KL', 'Hellinger', 'Alpha', 'Triangular', 'LeCam' or 'user' ") # check+++++++++++++
 
   z <- f(x_data[, k])
   min.z <- min(z)
@@ -117,12 +126,10 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (min.d) {
     if (m < min.z | m > max.z) stop("m must be in the range of f(x)")
     }
-  # add a check if there are too few points above m as in stress VaR????
 
   if (max.l) {
-    pn <- p[which.max(z)]
-    max.div <- div(0) * (1 - pn) + div(1 / pn) * pn
-    if (theta < 0 | theta > max.div) stop("theta must be in the range [0,max.div], where max.div=div(pn)/pn and pn is the weight corresponding to the largest observation") # ++++++++++++++++
+    max.div <- div(0) * (1 - 1 / n) + div(n) / n
+    if (theta < 0 | theta > max.div) stop(paste("theta must be in the range [0,max.div], where max.div=", div(0) * (1 - 1 / n) + div(n) / n,".")) # ++++++++++++++++
     }
 
   if (min.d & normalise == TRUE) {
@@ -131,14 +138,14 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   }
 
   if (min.d) constr <- function(L){
-    q <- p * inv(pmax(div0, L[1] + L[2] * z))
+    q <- inv(pmax(div0, L[1] + L[2] * z)) / n
     C1 <- sum(q) - 1
     C2 <- sum(q * z) - m
     return(c(C1, C2))
   } else constr <- function(L){
     w <- inv(pmax(div0, L[1] + L[2] * z))
-    C1 <- sum(p * w) - 1
-    C2 <- sum(p * div(w)) - theta
+    C1 <- sum(w / n) - 1
+    C2 <- sum(div(w) / n) - theta
     return(c(C1, C2))
   }
 
@@ -148,7 +155,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     if (min.d) {
     J <- function(L) {
       ind <- (L[1] + L[2] * z > div0)
-      q1 <- p * d.inv(L[1] + L[2] * z) * ind
+      q1 <- d.inv(L[1] + L[2] * z) * ind / n
       J11 <- sum(q1)
       J12 <- sum(q1 * z)
       J22 <- sum(q1 * z * z)
@@ -158,7 +165,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     } else {
       J <- function(L) {
         ind <- (L[1] + L[2] * fx > div0)
-        q1 <- p * d.inv(L[1] + L[2] * z) * ind
+        q1 <- d.inv(L[1] + L[2] * z) * ind / n
         J11 <- sum(q1)
         J12 <- sum(q1 * z)
         J22 <- sum(q1 * z * z)
@@ -177,7 +184,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   # if(sumRN) w <- w / mean(w) ################
 
   if (min.d) {
-    m.ac <- sum(p * w * z) ############
+    m.ac <- sum(w * z / n) ############
     if(normalise == TRUE) {
       m <- min.z + (max.z - min.z) * m
       m.ac <- min.z + (max.z - min.z) * m.ac
@@ -187,7 +194,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     outcome <- c(required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
     constr_moment <- list("k" = k, "m" = m, "f" = f, "div" = dvg)
   } else {
-    theta.ac <- sum(p * div(w)) ##############
+    theta.ac <- sum(div(w) / n) ##############
     err <- theta - theta.ac
     rel.err <- (err / theta) * (theta != 0)
     outcome <- c(required_divergence = theta, achieved_divergence = theta.ac, abs_error = err, rel_error = rel.err)
