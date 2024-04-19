@@ -13,7 +13,6 @@ stress_mean_div(
   dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam",
     "user"),
   div.usr = NULL,
-  p = rep(1/length(x), length(x)),
   alpha = NULL,
   normalise = TRUE,
   show = FALSE,
@@ -26,22 +25,20 @@ stress_mean_div(
 )
 }
 \arguments{
-\item{x}{A vector, matrix or data frame containing realisations of random variables. Columns of \code{x} correspond to random variables; or a \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.}
+\item{x}{A vector, matrix or data frame containing realizations of random variables. Columns of \code{x} correspond to random variables; OR \cr
+A \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.}
 
-\item{f}{A function that, applied to \code{x}, generates the valued of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.}
+\item{f}{A function that, applied to columnds of \code{x}, generates the values of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.}
 
-\item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default/, the first columnn is selected.}
+\item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first column is selected.}
 
-\item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the
-range of \code{f(x)}.}
+\item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the range of \code{f(x)}.}
 
-\item{theta}{Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to the}
+\item{theta}{Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).}
 
 \item{dvg}{Character. One of "Chi2", "KL", "revKL", Hellinger", "Alpha", "Triangular", "LeCam" or "user". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "Alpha" divergence, the numeric parameter "alpha" must be provided (when alpha is 1 the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
 
-\item{div.usr}{When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which}
-
-\item{p}{Numeric. A set of optional nonnegative scenario weights specifying the baseline model.}
+\item{div.usr}{When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########}
 
 \item{alpha}{Numeric. The 'alpha' parameter when the Alpha divergence is used.}
 
@@ -53,11 +50,11 @@ range of \code{f(x)}.}
 
 \item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.}
 
-\item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1 exactly.}
+\item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1.}
 
 \item{log}{Logical, the option to print weights' statistics.}
 
-\item{use.jac}{Logical, should the Jacobian matrix be used in the call to \code{\link[nleqslv]{nleqslv}}. Set to TRUE when a user divergence is used and the function div.usr$d.div is provided.}
+\item{use.jac}{Logical, should the Jacobian matrix be used in the call to \code{\link[nleqslv]{nleqslv}}. Set to TRUE when a user divergence is used and the argument div.usr$d.div is provided.}
 
 \item{...}{Additional arguments to be passed to \code{\link[nleqslv]{nleqslv}}.}
 }
@@ -65,7 +62,24 @@ range of \code{f(x)}.}
 A named list
 }
 \description{
-Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights are selected by minimisation of a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights are selected by maximisation of the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
+Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights minimize a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights maximize the moment of a model component. Case (i) is obtained by specifying the moment parameter 'm', case (ii) by specifying the divergence constraint 'theta'.
+}
+\details{
+The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+
+\deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+
+There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
+return a warning if the termination code provided by \code{nleqslv} is
+different from 1 (convergence has been achieved). It is recommended to
+check the result of the call to \code{nleqslv} using the "show" argument. The
+user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for
+further details.
+}
+\examples{
+# example code
+
+
 }
 \seealso{
 See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
