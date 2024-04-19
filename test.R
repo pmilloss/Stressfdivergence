@@ -2,21 +2,40 @@ library(SWIM)
 
 set.seed(0)
 x <- as.data.frame(cbind(
-  "normal" = rnorm(1000),
-  "gamma" = rgamma(1000, shape = 2)))
-res1 <- stress(type = "VaR", x = x,
-  alpha = 0.9, q_ratio = 1.05)
+  "normal" <- rnorm(1000),
+  "gamma" <- rgamma(1000, shape = 2)))
 
+# stress entropy using SWIM
+res1 <- stress(type = "VaR", x = x, alpha = 0.9, q_ratio = 1.05)
+
+# stress entropy using stress_mean_div
 newVaR <- quantile(x[, 1], probs = 0.9, type = 1) * 1.05
-debug(stress_mean_div)
 res2 <- stress_mean_div(res1, k = 1, f = function(x)1 * (x > newVaR), m = 0.1, dvg = "KL")
 all.equal(get_weights(res2)[, 1], get_weights(res2)[, 2])
 
+# stress mean with KL and chi2 divergence
+newMean <- mean(x[, 1]) + 1
+res1.1 <- stress_mean_div(x, k = 1, m = newMean, dvg = "KL")
+res1.2 <- stress_mean_div(res1.1, k = 1, m = newMean, dvg = "Chi2")
+res1.3 <- stress_mean_div(res1.2, k = 1, m = newMean, dvg = "Alpha", alpha = 1.5)
+res1.4 <- stress_mean_div(res1.3, k = 1, m = newMean, dvg = "Alpha", alpha = 2.5)
 
+summary(res1.4, xCol = 1)
 
+get_specs(res1.4)
+plot_weights(res1.4)
 
+# stress the sum of the mean of columns 1, 2
+res2.1 <- stress_mean_div(x, f = sum, k = 1:2, m = sum(colMeans(x)) * 1.1, dvg = "Chi2")
+get_specs(res2.1)
 
-
+# stress divergence
+res3.1 <- stress_mean_div(x, theta = 10, dvg = "Chi2")
+debug(stress_mean_div)
+colMeans(x)
+mean_stressed(res3.1, xCol = 1)
+res3.2 <- stress_mean_div(res3.1, theta = 20, dvg = "Chi2")
+mean_stressed(res3.2, xCol = 1)
 
 
 quantile_stressed(res1, probs = 0.9, type = "(i-1)/(n-1)")
