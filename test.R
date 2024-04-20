@@ -25,6 +25,20 @@ summary(res1.4, xCol = 1)
 get_specs(res1.4)
 plot_weights(res1.4)
 
+res1.5 <- stress_mean_div(x, k = 1, m = newMean, dvg = "revKL")
+res1.51 <- stress_mean_div(x, k = 1, m = newMean * 1.1, dvg = "revKL")
+res1.52 <- stress_mean_div(x, k = 1, m = newMean * 2, dvg = "revKL")
+
+
+
+
+mean(x[, 1])
+res1.6 <- stress_mean_div(x, k = 1, m = newMean, dvg = "Hellinger")
+res1.61 <- stress_mean_div(x, k = 1, m = newMean * 1.1, dvg = "Hellinger")
+res1.61 <- stress_mean_div(x, k = 1, m = newMean * 2, dvg = "Hellinger")
+
+
+
 # stress the sum of the mean of columns 1, 2
 res2.1 <- stress_mean_div(x, f = sum, k = 1:2, m = sum(colMeans(x)) * 1.1, dvg = "Chi2")
 get_specs(res2.1)
