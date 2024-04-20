@@ -22,21 +22,18 @@
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
 #'
-#' @details
+#' @details When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
 #'
-#' The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
-#'
-#' ' that, applied to columns of \code{x}, generates the values of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity functio
-#'
-#' For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used).
-#'
-#' When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
+#' \deqn{min_W E(h(W))}
+#' under the constraints
+#' \deqn{W>=0, }
 #'
 #' The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 #'
-#'  \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+#' \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
 #'
-#' +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++
+#' When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
+#'
 #'
 #'
 #' There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
@@ -45,6 +42,45 @@
 #'     check the result of the call to \code{nleqslv} using the "show" argument. The
 #'     user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for
 #'     further details.
+#'
+#'
+#' The stressed moment \code{m} must be in the range of \code{f(x)}.
+#'
+#' The divergence value \code{theta} must be between 0 and \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
+#'
+#' The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
+#'
+#' For a user specified divergence, the additional argument \code{div.usr} must be passed. When a user divergence function is chosen, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
+
+#'
+#'
+#'
+#' For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used).
+#'
+#' The following dievrgences are considered:
+#'
+#' Chi2
+#'
+#' \deqn{h(x)=x^2-1}
+#'
+#' Kullback-Leibler
+#'
+#' \deqn{h(x)=}
+#'
+#' reverse Kullback-Leibler
+#'
+#' \deqn{h(x)=}
+#'
+#' Hellinger
+#'
+#' \deqn{h(x)=}
+#'
+#' Alpha
+#'
+#' \deqn{h(x)=}
+#'
+#'
+#'
 #'
 #'with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
 #'
@@ -64,7 +100,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   max.l <- !is.null(theta)
 
   if (min.d + max.l != 1) stop("exactly one of m and theta must be provided")
-  if (SWIM:::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
+  if (SWIM::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
   if (!is.numeric(k)) stop("k must be a numeric vector")
@@ -235,8 +271,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   new_weights[[temp]] <- w
 
   type <- list("moment")
-  my_list <- SWIM:::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
-  if (SWIM:::is.SWIM(x)) my_list <- merge(x, my_list)
+  my_list <- SWIM::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
+  if (SWIM::is.SWIM(x)) my_list <- merge(x, my_list)
 
   if (show == TRUE) print(sol)
 

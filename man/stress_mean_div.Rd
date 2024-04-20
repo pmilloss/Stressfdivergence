@@ -10,8 +10,7 @@ stress_mean_div(
   k = 1,
   m = NULL,
   theta = NULL,
-  dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "Triangular", "Jeffrey", "LeCam",
-    "user"),
+  dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "user"),
   div.usr = NULL,
   alpha = NULL,
   normalise = TRUE,
@@ -28,17 +27,17 @@ stress_mean_div(
 \item{x}{A vector, matrix or data frame containing realizations of random variables. Columns of \code{x} correspond to random variables; OR \cr
 A \code{SWIM} object, where \code{x} corresponds to the underlying data of the \code{SWIM} object.}
 
-\item{f}{A function that, applied to columns of \code{x}, generates the values of the variable that will satisfy a mean constraint (and the divergence will be minimized) or whose mean will be maximized (under a divergence constraint). By default it is the identity function.}
+\item{f}{A function to be applied to the columns of \code{x}.}
 
 \item{k}{A vector indicating which columns of \code{x} the function \code{f} operates on. By default, the first column is selected.}
 
-\item{m}{Numeric, the stressed moments of \code{f(x)}. Must be in the range of \code{f(x)}.}
+\item{m}{Numeric, the stressed moments of \code{f(x)}.}
 
-\item{theta}{Numeric, the stressed divergence of the model. The range of possible divergence values goes from 0 to \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).}
+\item{theta}{Numeric, the stressed divergence of the model.}
 
-\item{dvg}{Character. One of "\code{Chi2}", "\code{KL}", "\code{revKL}", "\code{Hellinger}", "\code{Alpha}", "\code{Triangular}", "\code{LeCam}" or "\code{user}". For a user specified divergence, see the additional list 'div.usr' that must be passed. For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when alpha is 2, the Chi2 divergence is used). +++++++++++++++++++ADD EQUATIONS FOR THE DIVERGENCES+++++++++++++++++}
+\item{dvg}{Character. One of "\code{Chi2}", "\code{KL}", "\code{revKL}", "\code{Hellinger}", "\code{Alpha}" or "\code{user}". See 'Details'}
 
-\item{div.usr}{When a user divergence function is chose, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########}
+\item{div.usr}{a list specifying the user divergence, see 'Details'.}
 
 \item{alpha}{Numeric. The 'alpha' parameter when the Alpha divergence is used.}
 
@@ -48,7 +47,7 @@ A \code{SWIM} object, where \code{x} corresponds to the underlying data of the \
 
 \item{names}{Character vector, the names of stressed models.}
 
-\item{start}{A numeric vector with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.}
+\item{start}{A numeric vector, see 'Details'.}
 
 \item{sumRN}{Logical. If true, the scenario weights are normalized so as to average to 1.}
 
@@ -65,9 +64,17 @@ A named list
 Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights minimize a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights maximize the moment of a model component. Case (i) is obtained by specifying the moment parameter '\code{m}', case (ii) by specifying the divergence constraint '\code{theta}'.
 }
 \details{
+When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
+
+\deqn{min_W E(h(W))}
+under the constraints
+\deqn{W>=0, }
+
 The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 
 \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+
+When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
 
 There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
 return a warning if the termination code provided by \code{nleqslv} is
@@ -75,6 +82,40 @@ different from 1 (convergence has been achieved). It is recommended to
 check the result of the call to \code{nleqslv} using the "show" argument. The
 user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for
 further details.
+
+The stressed moment \code{m} must be in the range of \code{f(x)}.
+
+The divergence value \code{theta} must be between 0 and \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
+
+The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
+
+For a user specified divergence, the additional argument \code{div.usr} must be passed. When a user divergence function is chosen, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
+
+For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used).
+
+The following dievrgences are considered:
+
+Chi2
+
+\deqn{h(x)=x^2-1}
+
+Kullback-Leibler
+
+\deqn{h(x)=}
+
+reverse Kullback-Leibler
+
+\deqn{h(x)=}
+
+Hellinger
+
+\deqn{h(x)=}
+
+Alpha
+
+\deqn{h(x)=}
+
+with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
 }
 \examples{
 # example code
