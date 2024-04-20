@@ -24,16 +24,18 @@
 #'
 #' @details When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
 #'
-#' \deqn{min_W E(h(W))}
+#' \deqn{\min_W E(h(W))}
 #' under the constraints
-#' \deqn{W>=0, }
-#'
-#' The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+#' \deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
+#' where \code{W=\frac{dQ}{dP}} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^Q(Z)=m}, where \code{E^Q} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 #'
 #' \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
 #'
 #' When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
 #'
+#' \deqn{\max_W E(WZ)}
+#' under the constraints
+#' \deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta}
 #'
 #'
 #' There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
@@ -65,19 +67,19 @@
 #'
 #' Kullback-Leibler
 #'
-#' \deqn{h(x)=}
+#' \deqn{h(x)=x * log(x)}
 #'
 #' reverse Kullback-Leibler
 #'
-#' \deqn{h(x)=}
+#' \deqn{h(x)=-log(x)}
 #'
 #' Hellinger
 #'
-#' \deqn{h(x)=}
+#' \deqn{h(x)=(1 - x) ^ {-2}}
 #'
 #' Alpha
 #'
-#' \deqn{h(x)=}
+#' \deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}
 #'
 #'
 #'
