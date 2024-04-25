@@ -69,7 +69,7 @@ When the argument \code{m} is specified, \code{stress_mean_div} solves the probl
 \deqn{\min_W E(h(W))}
 under the constraints
 \deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
-where \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to \code{\theta}, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+where \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to \code{theta}, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 
 \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
 
@@ -87,7 +87,7 @@ The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence
 
 The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
 
-For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of\code{h} (possibly \code{-Inf}); when \code{theta'} is specified (divergence constraint), \code{div.usr} must also contain the argumen \code{div} giving the divergence function \code{h}. Optionally, a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the +++++++. The divergence function must be one for which ###########
+For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of\code{h} (possibly \code{-Inf}); when \code{theta'} is specified (divergence constraint), \code{div.usr} must also contain the argument \code{div} giving the divergence function \code{h}. Optionally, a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the +++++++. The divergence function must be one for which ###########
 
 For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used). The solution is numerically unstable for values of \code{alpha} +++++++++++
 
@@ -99,7 +99,7 @@ Chi2
 
 Kullback-Leibler
 
-\deqn{h(x)=x \cdot log(x)}
+\deqn{h(x)=x * log(x)}
 
 reverse Kullback-Leibler
 
