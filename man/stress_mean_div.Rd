@@ -66,15 +66,18 @@ Provides weights on simulated scenarios from a baseline stochastic model, such t
 \details{
 When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
 
-\deqn{min_W E(h(W))}
+\deqn{\min_W E(h(W))}
 under the constraints
-\deqn{W>=0, }
-
-The moment constraints are given by \code{E^Q( f(x) ) = m},where \code{E^Q} denotes the expectation under the stressed model. \code{stress_moment} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+\deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
+where \code{W=\frac{dQ}{dP}} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^Q(Z)=m}, where \code{E^Q} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 
 \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
 
 When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
+
+\deqn{\max_W E(WZ)}
+under the constraints
+\deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta}
 
 There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
 return a warning if the termination code provided by \code{nleqslv} is
@@ -85,7 +88,7 @@ further details.
 
 The stressed moment \code{m} must be in the range of \code{f(x)}.
 
-The divergence value \code{theta} must be between 0 and \code{max.div=div(0) * (1 - 1 / n) + div(n) / n}, where \code{div} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
+The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n)/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
 
 The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
 
@@ -93,7 +96,7 @@ For a user specified divergence, the additional argument \code{div.usr} must be 
 
 For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used).
 
-The following dievrgences are considered:
+The following divergences are considered:
 
 Chi2
 
@@ -101,19 +104,19 @@ Chi2
 
 Kullback-Leibler
 
-\deqn{h(x)=}
+\deqn{h(x)=x * log(x)}
 
 reverse Kullback-Leibler
 
-\deqn{h(x)=}
+\deqn{h(x)=-log(x)}
 
 Hellinger
 
-\deqn{h(x)=}
+\deqn{h(x)=(1 - x) ^ {-2}}
 
 Alpha
 
-\deqn{h(x)=}
+\deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}}
 
 with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
 }
