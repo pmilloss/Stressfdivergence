@@ -69,7 +69,7 @@ When the argument \code{m} is specified, \code{stress_mean_div} solves the probl
 \deqn{\min_W E(h(W))}
 under the constraints
 \deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
-where \code{W=\frac{dQ}{dP}} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^Q(Z)=m}, where \code{E^Q} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to theta, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
+where \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to \code{\theta}, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
 
 \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
 
@@ -79,22 +79,17 @@ When the argument \code{theta} is specified, \code{stress_mean_div} solves the p
 under the constraints
 \deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta}
 
-There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{SWIM} will
-return a warning if the termination code provided by \code{nleqslv} is
-different from 1 (convergence has been achieved). It is recommended to
-check the result of the call to \code{nleqslv} using the "show" argument. The
-user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for
-further details.
+Here \code{E(WZ)=E^{Q}(Z)} where \code{E^{Q}} is the expectation operator under the stressed model  where \code{W=dQ/dP}
 
-The stressed moment \code{m} must be in the range of \code{f(x)}.
+There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{stress_mean_div} will return a warning if the termination code provided by \code{nleqslv} is different from 1 (convergence has been achieved). It is recommended to check the result of the call to \code{nleqslv} using the \code{show} argument. The user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for further details.
 
-The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n)/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (rows of \code{x}).
+The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n)/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (number of rows of \code{x}).
 
 The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
 
-For a user specified divergence, the additional argument \code{div.usr} must be passed. When a user divergence function is chosen, a named list containing at least the following objects: a function 'inv' giving the inverse of the first derivative of the divergence; a numeric 'div0' giving the the derivative at 0 of the divergence (possibly -Inf); when 'theta' is specified (divergence constraint), a function 'div' giving the divergence. Optionally, a function 'd.div' specifying the first derivative of the divergence. The divergence function must be one for which ###########
+For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of\code{h} (possibly \code{-Inf}); when \code{theta'} is specified (divergence constraint), \code{div.usr} must also contain the argumen \code{div} giving the divergence function \code{h}. Optionally, a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the +++++++. The divergence function must be one for which ###########
 
-For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used).
+For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used). The solution is numerically unstable for values of \code{alpha} +++++++++++
 
 The following divergences are considered:
 
@@ -104,7 +99,7 @@ Chi2
 
 Kullback-Leibler
 
-\deqn{h(x)=x * log(x)}
+\deqn{h(x)=x \cdot log(x)}
 
 reverse Kullback-Leibler
 

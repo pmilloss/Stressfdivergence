@@ -58,7 +58,7 @@
 #'
 #' Kullback-Leibler
 #'
-#' \deqn{h(x)=x \cdot log(x)}
+#' \deqn{h(x)=x * log(x)}
 #'
 #' reverse Kullback-Leibler
 #'
@@ -75,7 +75,7 @@
 #'
 #'
 #'
-#'with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
+#' with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
 #'
 #' @author Pietro Millossovich
 #'
