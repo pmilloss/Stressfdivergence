@@ -22,60 +22,50 @@
 #'
 #' @seealso See \code{\link{stress_moment}} for a more flexible function allowing to perform multiple joint stresses under the KL divergence.
 #'
-#' @details When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
+#' @details The following divergence functions \code{h} are considered:
+#'
+#' Chi2 (\code{dvg=Chi2}):
+#'
+#' \deqn{h(x)=x^2-1}
+#'
+#' Kullback-Leibler (\code{dvg=KL}):
+#'
+#' \deqn{h(x)=x \dot \log(x)}
+#'
+#' reverse Kullback-Leibler (\code{dvg=revKL}):
+#'
+#' \deqn{h(x)=-\log(x)}
+#'
+#' Hellinger (\code{dvg=Hellinger}):
+#'
+#' \deqn{h(x)=(1 - x) ^ {-2}}.
+#'
+#' Alpha (\code{dvg=Alpha}):
+#'
+#' \deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}}
+#'
+#' When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
 #'
 #' \deqn{\min_W E(h(W))}
 #' under the constraints
-#' \deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
-#' where \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to \code{theta}, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
-#'
-#' \deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+#' \deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m,}
+#' where \code{h} is the divergence, \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the resulting set of equations using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}.
 #'
 #' When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
 #'
 #' \deqn{\max_W E(WZ)}
 #' under the constraints
-#' \deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta}
-#'
-#' Here \code{E(WZ)=E^{Q}(Z)} where \code{E^{Q}} is the expectation operator under the stressed model  where \code{W=dQ/dP}
+#' \deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta.}
 #'
 #' There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{stress_mean_div} will return a warning if the termination code provided by \code{nleqslv} is different from 1 (convergence has been achieved). It is recommended to check the result of the call to \code{nleqslv} using the \code{show} argument. The user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for further details.
 #'
-#' The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n)/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (number of rows of \code{x}).
+#' The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n) * 1/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (number of rows of \code{x}).
 #'
 #' The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
 #'
-#' For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of\code{h} (possibly \code{-Inf}); when \code{theta'} is specified (divergence constraint), \code{div.usr} must also contain the argument \code{div} giving the divergence function \code{h}. Optionally, a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the +++++++. The divergence function must be one for which ###########
-
+#' For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of \code{h} (possibly \code{-Inf}); when \code{theta} is specified (divergence constraint), \code{div.usr} must also contain the argument \code{div} giving the divergence function \code{h}. Optionally, \code{div.usr} can include a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the system of equations to be solved.
 #'
-#' For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used). The solution is numerically unstable for values of \code{alpha} +++++++++++
-#'
-#' The following divergences are considered:
-#'
-#' Chi2
-#'
-#' \deqn{h(x)=x^2-1}
-#'
-#' Kullback-Leibler
-#'
-#' \deqn{h(x)=x * log(x)}
-#'
-#' reverse Kullback-Leibler
-#'
-#' \deqn{h(x)=-log(x)}
-#'
-#' Hellinger
-#'
-#' \deqn{h(x)=(1 - x) ^ {-2}}
-#'
-#' Alpha
-#'
-#' \deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}}
-#'
-#'
-#'
-#'
-#' with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
+#' For the \code{Alpha} divergence, the numeric parameter \code{alpha} must be provided (when \code{alpha=0,1,2} the \code{revKL}, \code{KL} and \code{Chi2} divergences are used, respectively. The solution is sometimes numerically unstable for \code{alpha>2}.
 #'
 #' @author Pietro Millossovich
 #'
@@ -93,14 +83,12 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   max.l <- !is.null(theta)
 
   if (min.d + max.l != 1) stop("exactly one of m and theta must be provided")
-  if (SWIM::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
+  if (SWIM:::is.SWIM(x)) x_data <- SWIM::get_data(x) else x_data <- as.matrix(x)
   if (anyNA(x_data)) warning("x contains NA")
   if (!is.function(f)) stop("f must be a function")
   if (!is.numeric(k)) stop("k must be a numeric vector")
   if (min.d & !is.numeric(m)) stop("m must be numeric")
   if (max.l & !is.numeric(theta)) stop("theta must be numeric")
-
-  n <- nrow(x_data)
 
   if (dvg == "user" & (!is.function(div.usr$inv) | !is.numeric(div.usr$div0))) stop("For a user defined divergence, the list 'div.usr' must contain at least the objects 'inv' and 'div0'")
 
@@ -132,7 +120,15 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     d.div <- function(x)ifelse(x > 0, 1 - 1 / sqrt(x), -Inf)
     div0 <- -Inf
     d.inv <- function(x)ifelse(x < 1, 2 / (1 - x) ^ 3, Inf)
-  } else if (dvg == "Alpha" & alpha > 1) {
+  } else if (dvg == "Alpha"){
+    if (alpha > 1){
+      div <- function(x)ifelse(x >= 0, (x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1)), Inf)
+      div0 <- -1 / (alpha - 1)
+      inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1)), 0)
+      d.div <- function(x)ifelse(x > 0, (x ^ (alpha - 1) - 1) / (alpha -1), div0)
+      d.inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1) - 1), )
+      dvg <- paste(dvg, " a=", alpha)
+      } else if (alpha > 1) {
     div <- function(x)ifelse(x >= 0, (x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1)), Inf)
     div0 <- -1 / (alpha - 1)
     inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1)), 0)
@@ -157,12 +153,13 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   #   d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
   # } else if (dvg == "LeCam") {
   #   div <- function(x)0.5 * (1 - x) / (x + 1)
-  # } else if (dvg == "user") {
-  #   div0 <- div.usr$div0
-  #   inv <- div.usr$inv
-  #   if (max.l) div <- div.usr$div
-  #   use.jac <- TRUE
   # }
+  else if (dvg == "user") {
+     div0 <- div.usr$div0
+     inv <- div.usr$inv
+     if (max.l) div <- div.usr$div
+     use.jac <- TRUE
+   }
   else stop("The argument 'div' must be one of 'Chi2', 'KL', 'revKL', Hellinger', 'Alpha' or 'user' ")
 
   z <- apply(X = x_data[, k, drop = FALSE], MARGIN = 1, FUN = f)
@@ -171,6 +168,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   if (min.d) {
     if (m < min.z | m > max.z) stop("m must be in the range of f(x)")
     }
+
+  n <- nrow(x_data)
 
   if (max.l) {
     max.div <- div(0) * (1 - 1 / n) + div(n) / n
@@ -194,7 +193,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     return(c(C1, C2))
   }
 
-  if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0) ######
+  if (is.null(start) & dvg != "user") start <- c(L1 = d.div(1), L2 = 0)
 
   if (exists("d.inv") & use.jac == TRUE) {
     if (min.d) {
@@ -217,7 +216,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
         J21 <- L[1] * J11 + L[2] * J12
         J22 <- L[1] * J12 + L[2] * J22
         jac <- matrix(c(J11, J21, J12, J22), nrow = 2)
-        return(jac) ################## double check
+        return(jac)
       }
     }
     sol <- nleqslv::nleqslv(x = start, fn = constr, jac = J, ...)
@@ -225,11 +224,11 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
 
   if (sol$termcd != 1) warning(paste("nleqslv terminated with code ", sol$termcd))
 
-  w <- inv(pmax(div0, sol$x[1] + sol$x[2] * z))########
-  # if(sumRN) w <- w / mean(w) ################
+  w <- inv(pmax(div0, sol$x[1] + sol$x[2] * z))
+  if(sumRN) w <- w / mean(w)
 
   if (min.d) {
-    m.ac <- sum(w * z / n) ############
+    m.ac <- sum(w * z / n)
     if(normalise == TRUE) {
       m <- min.z + (max.z - min.z) * m
       m.ac <- min.z + (max.z - min.z) * m.ac
@@ -239,7 +238,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     outcome <- c(required_moment = m, achieved_moment = m.ac, abs_error = err, rel_error = rel.err)
     constr_moment <- list("k" = k, "m" = m, "f" = f, "div" = dvg)
   } else {
-    theta.ac <- sum(div(w) / n) ##############
+    theta.ac <- sum(div(w) / n)
     err <- theta - theta.ac
     rel.err <- (err / theta) * (theta != 0)
     outcome <- c(required_divergence = theta, achieved_divergence = theta.ac, abs_error = err, rel_error = rel.err)
@@ -264,8 +263,8 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
   new_weights[[temp]] <- w
 
   type <- list("moment")
-  my_list <- SWIM::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
-  if (SWIM::is.SWIM(x)) my_list <- merge(x, my_list)
+  my_list <- SWIM:::SWIM("x" = x_data, "new_weights" = new_weights, "type" = type, "specs" = constr)
+  if (SWIM:::is.SWIM(x)) my_list <- merge(x, my_list)
 
   if (show == TRUE) print(sol)
 

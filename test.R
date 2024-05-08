@@ -23,7 +23,7 @@ res1.4 <- stress_mean_div(res1.3, k = 1, m = newMean, dvg = "Alpha", alpha = 2.5
 summary(res1.4, xCol = 1)
 
 get_specs(res1.4)
-plot_weights(res1.4)
+plot_weights(res1.4, n = 100)
 
 res1.5 <- stress_mean_div(x, k = 1, m = newMean, dvg = "revKL")
 res1.51 <- stress_mean_div(x, k = 1, m = newMean * 1.1, dvg = "revKL")
@@ -39,28 +39,33 @@ res1.61 <- stress_mean_div(x, k = 1, m = newMean * 2, dvg = "Hellinger")
 
 
 
-# stress the sum of the mean of columns 1, 2
-res2.1 <- stress_mean_div(x, f = sum, k = 1:2, m = sum(colMeans(x)) * 1.1, dvg = "Chi2")
+# stress the mean of the sum of columns 1, 2
+res2.1 <- stress_mean_div(x, f = , k = 1:2, m = sum(colMeans(x)) * 1.1, dvg = "Chi2")
 get_specs(res2.1)
 
 # stress divergence
 res3.1 <- stress_mean_div(x, theta = 10, dvg = "Chi2")
-debug(stress_mean_div)
-colMeans(x)
-mean_stressed(res3.1, xCol = 1)
 res3.2 <- stress_mean_div(res3.1, theta = 20, dvg = "Chi2")
-mean_stressed(res3.2, xCol = 1)
+res3.3 <- stress_mean_div(res3.2, theta = 30, dvg = "Chi2")
+mean_stressed(res3.3, xCol = 1)
+
+plot_weights(res3.3)
 
 
-quantile_stressed(res1, probs = 0.9, type = "(i-1)/(n-1)")
-quantile_stressed(res1, probs = 0.9, type = "i/(n+1)")
-quantile_stressed(res1, probs = 0.9, type = "i/n")
-quantile_stressed(res2, probs = 0.9, wCol = 2, type = "i/n")
+# stress user
+user.div <- list(div = function(x)ifelse(x >= 1, (x - 1) ^ 2 / (x + 1), Inf),
+                 inv = function(x)-1 + 2 / sqrt(ifelse(x < 1, 1 - x, 0)),
+                 d.div = function(x)(x - 1) * (x + 3) / (x + 1) ^ 2,
+                 div0 = -3,
+                 d.inv = function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf))
 
-plot_weights(res2, wCol = 1)
-plot_weights(res2, wCol = 2)
+res4 <- stress_mean_div(x, k = 1, m = newMean, dvg = "user", div.usr = user.div)
 
-sum(get_weights(res2, wCol = 2))
+
+#   d.inv <- function(x)ifelse(x < 1, (1 - x) ^ -1.5, Inf)
+
+
+
 
 ## calling stress_VaR directly
 ## stressing "gamma"

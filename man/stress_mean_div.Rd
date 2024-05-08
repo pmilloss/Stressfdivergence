@@ -64,56 +64,50 @@ A named list
 Provides weights on simulated scenarios from a baseline stochastic model, such that (i) a stressed model component fulfills a moment constraint and scenario weights minimize a selected divergence to the baseline model, or (ii) a stressed model fulfills a divergence constraint and scenario weights maximize the moment of a model component. Case (i) is obtained by specifying the moment parameter '\code{m}', case (ii) by specifying the divergence constraint '\code{theta}'.
 }
 \details{
+The following divergence functions \code{h} are considered:
+
+Chi2 (\code{dvg=Chi2}):
+
+\deqn{h(x)=x^2-1}
+
+Kullback-Leibler (\code{dvg=KL}):
+
+\deqn{h(x)=x * \log(x)}
+
+reverse Kullback-Leibler (\code{dvg=revKL}):
+
+\deqn{h(x)=-log(x)}
+
+Hellinger (\code{dvg=Hellinger}):
+
+\deqn{h(x)=(1 - x) ^ {-2}}.
+
+Alpha (\code{dvg=Alpha}):
+
+\deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}}
+
 When the argument \code{m} is specified, \code{stress_mean_div} solves the problem
 
 \deqn{\min_W E(h(W))}
 under the constraints
-\deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m}
-where \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the subsequent set of equations with respect to \code{theta}, using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}:
-
-\deqn{E^Q( f(x) ) = E( f(x) * exp(theta * f(x)) ) = m.}
+\deqn{W\geq 0,\, E(W)=1,\,E(WZ)=m,}
+where \code{h} is the divergence, \code{W=dQ/dP} is the Radon-Nikodym derivative and \code{Z} is a random variable obtained from the columns of \code{x} (see later). The moment constraint above can be restated as \code{E^{Q}(Z)=m}, where \code{E^{Q}} denotes the expectation under the stressed model. \code{stress_mean_div} solves the resulting set of equations using \code{\link[nleqslv]{nleqslv}} from package \code{\link[nleqslv]{nleqslv}}.
 
 When the argument \code{theta} is specified, \code{stress_mean_div} solves the problem
 
 \deqn{\max_W E(WZ)}
 under the constraints
-\deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta}
-
-Here \code{E(WZ)=E^{Q}(Z)} where \code{E^{Q}} is the expectation operator under the stressed model  where \code{W=dQ/dP}
+\deqn{W\geq 0,\, E(W)=1,\,E(h(W))\leq \theta.}
 
 There is no guarantee that the set of equations has a solution, or that the solution is unique. \code{stress_mean_div} will return a warning if the termination code provided by \code{nleqslv} is different from 1 (convergence has been achieved). It is recommended to check the result of the call to \code{nleqslv} using the \code{show} argument. The user is referred to the \code{\link[nleqslv]{nleqslv}} documentation for further details.
 
-The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n)/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (number of rows of \code{x}).
+The stressed moment \code{m} must be in the range of \code{f(x)}. The divergence value \code{theta} must be between 0 and \code{max.div=h(0) * (1-1/n)+h(n) * 1/n}, where \code{h} is the divergence function and \code{n} is the number of simulations (number of rows of \code{x}).
 
 The function \code{f} operates on the columns of \code{x} indexed by the vector \code{k} to determine the values of the variable \code{Z}. By default \code{Z} is the first column of \code{x}.
 
-For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of\code{h} (possibly \code{-Inf}); when \code{theta'} is specified (divergence constraint), \code{div.usr} must also contain the argument \code{div} giving the divergence function \code{h}. Optionally, a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the +++++++. The divergence function must be one for which ###########
+For a user specified divergence, the additional argument \code{div.usr} must be passed. This is a named list containing at least the following items: a function \code{inv} giving the inverse of the first derivative of the divergence function \code{h}; a numeric \code{div0} giving the the derivative at 0 of \code{h} (possibly \code{-Inf}); when \code{theta} is specified (divergence constraint), \code{div.usr} must also contain the argument \code{div} giving the divergence function \code{h}. Optionally, \code{div.usr} can include a function \code{d.div}, specifying the first derivative of the divergence, which will be used for the Jacobian of the system of equations to be solved.
 
-For the "\code{Alpha}" divergence, the numeric parameter "\code{alpha}" must be provided (when \code{alpha=1} the KL divergence is used; when \code{alpha=2}, the \code{Chi2} divergence is used; when \code{alpha=0} the \code{revKL} divergence is used). The solution is numerically unstable for values of \code{alpha} +++++++++++
-
-The following divergences are considered:
-
-Chi2
-
-\deqn{h(x)=x^2-1}
-
-Kullback-Leibler
-
-\deqn{h(x)=x * log(x)}
-
-reverse Kullback-Leibler
-
-\deqn{h(x)=-log(x)}
-
-Hellinger
-
-\deqn{h(x)=(1 - x) ^ {-2}}
-
-Alpha
-
-\deqn{h(x)=\frac{x ^ \alpha - \alpha * (x - 1) - 1}{\alpha * (\alpha - 1)}}
-
-with two elements, the starting values for the coefficients lambda1 and lambda2. Defaults to div$d.div(1) and 0 respectively, guaranteeing that the initial set of scenario weights is constant.
+For the \code{Alpha} divergence, the numeric parameter \code{alpha} must be provided (when \code{alpha=0,1,2} the \code{revKL}, \code{KL} and \code{Chi2} divergences are used, respectively. The solution is sometimes numerically unstable for \code{alpha>2}.
 }
 \examples{
 # example code
