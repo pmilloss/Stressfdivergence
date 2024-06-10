@@ -79,6 +79,8 @@
 
 stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, dvg = c("Chi2", "KL", "revKL", "Hellinger", "Alpha", "user"), div.usr = NULL, alpha = NULL, normalise = TRUE, show = FALSE, names = NULL, start = NULL, sumRN = FALSE, log = FALSE, use.jac = FALSE, ...){
 
+  arg <- match.arg(dvg)
+
   min.d <- !is.null(m)
   max.l <- !is.null(theta)
 
