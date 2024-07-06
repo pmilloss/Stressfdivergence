@@ -72,11 +72,11 @@ Chi2 (\code{dvg=Chi2}):
 
 Kullback-Leibler (\code{dvg=KL}):
 
-\deqn{h(x)=x * \log(x)}
+\deqn{h(x)=x \dot \log(x)}
 
 reverse Kullback-Leibler (\code{dvg=revKL}):
 
-\deqn{h(x)=-log(x)}
+\deqn{h(x)=-\log(x)}
 
 Hellinger (\code{dvg=Hellinger}):
 

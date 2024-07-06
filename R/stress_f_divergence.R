@@ -130,7 +130,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
       d.div <- function(x)ifelse(x > 0, (x ^ (alpha - 1) - 1) / (alpha -1), div0)
       d.inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1) - 1), )
       dvg <- paste(dvg, " a=", alpha)
-      } else if (alpha > 1) {
+      } else if (alpha > 1) { # check here alpha
     div <- function(x)ifelse(x >= 0, (x ^ alpha - alpha * (x - 1) - 1) / (alpha * (alpha - 1)), Inf)
     div0 <- -1 / (alpha - 1)
     inv <- function(x)ifelse(x > div0, (1 + x * (alpha - 1)) ^ (1 / (alpha - 1)), 0)
@@ -144,6 +144,7 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
     div0 <- d.div(0)
     d.inv <- function(x)4 * (-2 * x * (1 + alpha)) ^ (- (3 + alpha) / (1 + alpha))
     dvg <- paste(dvg, " a=", alpha)
+  }
   }
   # else if (dvg == "Triangular") {
   #   div <- function(x)ifelse(x >= 1, (x - 1) ^ 2 / (x + 1), Inf)
@@ -162,7 +163,6 @@ stress_mean_div <- function(x, f = function(x)x, k = 1, m = NULL, theta = NULL, 
      if (max.l) div <- div.usr$div
      use.jac <- TRUE
    }
-  else stop("The argument 'div' must be one of 'Chi2', 'KL', 'revKL', Hellinger', 'Alpha' or 'user' ")
 
   z <- apply(X = x_data[, k, drop = FALSE], MARGIN = 1, FUN = f)
   min.z <- min(z)
