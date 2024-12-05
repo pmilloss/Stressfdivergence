@@ -67,11 +67,10 @@
 #'
 #' For the \code{Alpha} divergence, the numeric parameter \code{alpha} must be provided (when \code{alpha=0,1,2} the \code{revKL}, \code{KL} and \code{Chi2} divergences are used, respectively. The solution is sometimes numerically unstable for \code{alpha>2}.
 #'
-#' @author Pietro Millossovich
+#' @author Pietro Millossovich, Andreas Tsanakas, Vaishno Devi Makam
 #'
 #' @examples
 #' # example code
-#'
 #'
 #' @return A named list
 #'
